@@ -1,0 +1,4 @@
+Requirements
+
+ffmpeg
+tesseract-ocr
