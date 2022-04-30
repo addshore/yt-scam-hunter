@@ -2,9 +2,12 @@ const ytsr = require('ytsr');
 const columnify = require('columnify')
 const fs = require('fs');
 const ytdl = require('ytdl-core');
+const extractFrame = require('ffmpeg-extract-frame')
 const tesseract = require("node-tesseract-ocr")
 
 const sleep = require('util').promisify(setTimeout)
+
+const badStrings = fs.readFileSync("./badlist.txt", 'utf8').split("\n");;
 
 /**
  * Searches on YouTube for live streams that look like crypto scams
@@ -19,18 +22,16 @@ async function videos() {
       }
 
     // create an array to store the results
-    const results = [];
-    const requests = 1;
-    var result = await ytsr(filter2.url, ytOptions);
+    let results = [];
+    let result = await ytsr(filter2.url, ytOptions);
     results.push(...result.items);
     while (result.continuation !== null) {
-        requests++;
         result = await ytsr.continueReq(result.continuation);
         results.push(...result.items);
     }
 
     // Iterate through results, removing some keys from objects
-    return await results.map(function(video) {
+    return results.map(function(video) {
         return {
             title: video.title,
             url: video.url,
@@ -42,20 +43,33 @@ async function videos() {
     });
 }
 
-/**
- * Downloads a snippet of a current live stream from YouTube
- * Then extracting the first frame from the video
- */
-async function videoSnapshots(youtubeVideoId) {
-    outputVideo = "./.data/" + youtubeVideoId + ".mp4";
-    outputSnap = "./.data/" + youtubeVideoId + ".jpg";
+async function processVideo(video) {
+    let report = ""
+    let youtubeVideoId = video.url.split("=")[1];
+
+    report += "Processing " + video.url + "\n"
+    let outputJson = "./.data/" + youtubeVideoId + ".json";
+    let outputVideo = "./.data/" + youtubeVideoId + ".mp4";
+    let outputSnap = "./.data/" + youtubeVideoId + ".jpg";
+    let outputText = "./.data/" + youtubeVideoId + ".txt";
+    if (fs.existsSync(outputJson)) {
+        fs.unlinkSync(outputJson);
+    }
     if (fs.existsSync(outputVideo)) {
         fs.unlinkSync(outputVideo);
     }
     if (fs.existsSync(outputSnap)) {
         fs.unlinkSync(outputSnap);
     }
-    var readableStream = ytdl('https://www.youtube.com/watch?v=' + youtubeVideoId, {
+    if (fs.existsSync(outputText)) {
+        fs.unlinkSync(outputText);
+    }
+
+    // Write JSON
+    fs.writeFileSync(outputJson, JSON.stringify(video,null,2));
+
+    // Write Video
+    let readableStream = ytdl('https://www.youtube.com/watch?v=' + youtubeVideoId, {
         begin : Date.now(),
     })
     readableStream.pipe(fs.createWriteStream(outputVideo));
@@ -67,78 +81,73 @@ async function videoSnapshots(youtubeVideoId) {
     while (fs.statSync(outputVideo).size < 1000000) {
         await sleep(100)
     }
-
     readableStream.destroy();
-    const extractFrame = require('ffmpeg-extract-frame')
     
-    return extractFrame({
+    // Write Snapshot
+    await extractFrame({
         input: outputVideo,
         output: outputSnap,
         offset: 0 // seek offset in milliseconds
-      })
-}
+    })
 
-/**
- * Extract the text from a video snapshot and write it to disk
- */
-async function textFromSnapshot(youtubeVideoId) {
-    outputSnap = "./.data/" + youtubeVideoId + ".jpg";
-    outputText = "./.data/" + youtubeVideoId + ".txt";
-    if (fs.existsSync(outputText)) {
-        fs.unlinkSync(outputText);
-    }
-
-    const tesseractConfig = {
-        lang: "eng",
-        oem: 1,
-        psm: 3,
-    }
-    return tesseract
-        .recognize(outputSnap, tesseractConfig)
+    // Write text
+    let extractedText = await tesseract
+        .recognize(outputSnap, {
+            lang: "eng",
+            oem: 1,
+            psm: 3,
+        })
         .then((text) => {
             fs.writeFileSync(outputText, text);
+            return text
         })
         .catch((error) => {
+            fs.writeFileSync(outputText, "");
             console.log(error.message)
+            return ""
         })
+
+    let badStrings = textIncludesBadStuff(extractedText);
+    if (badStrings.length > 0) {
+        report += "Detected known bad strings:\n"
+        for (let j = 0; j < badStrings.length; j++) {
+            report += " - \"" + badStrings[j] + "\"\n"
+        }
+    }
+    return report.trim()
 }
 
 /**
  * Looks for bad strings in the text of the video snapshot
  */
-function textIncludesBadStuff(youtubeVideoId) {
-    outputTextFile = "./.data/" + youtubeVideoId + ".txt";
-    text = fs.readFileSync(outputTextFile, 'utf8');
-    badStrings = fs.readFileSync("./badlist.txt", 'utf8');
-    badStrings = badStrings.split("\n");
-    foundBadStrings = []
+ function textIncludesBadStuff(text) {
+    let text = text.toLowerCase();
+    let foundBadStrings = []
     for (i = 0; i < badStrings.length; i++) {
-        if (text.includes(badStrings[i])) {
-            foundBadStrings.push(badStrings[i]);
+        let badString = badStrings[i].toLowerCase();
+        if (text.includes(badString)) {
+            foundBadStrings.push(badString);
         }
     }
     return foundBadStrings
 }
 
-// //Tie things together
+// Tie things together
 (async () => {
     console.log("Starting...");
     let videosData = await videos();
     console.log(columnify(videosData, {}))
     console.log("Got " + videosData.length + " videos");
+    let videoReports = []
+    // Set all of our work up
     for (let i = 0; i < videosData.length; i++) {
         let video = videosData[i];
-        let youtubeVideoId = video.url.split("=")[1];
-        console.log("Processing video " + (i + 1) + " of " + videosData.length);
-        fs.writeFileSync("./.data/" + youtubeVideoId + ".json", JSON.stringify(video,null,2));
-        await videoSnapshots(youtubeVideoId);
-        await textFromSnapshot(youtubeVideoId);
-        let badStrings = textIncludesBadStuff(youtubeVideoId);
-        if (badStrings.length > 0) {
-            console.log(video.url + " has known bad strings:");
-            for (let j = 0; j < badStrings.length; j++) {
-                console.log(" - \"" + badStrings[j] + "\"");
-            }
-        }
+        let videoId = video.url.split("=")[1];
+        videoReports[videoId] = processVideo(video);
+    }
+    // And wait for them to finish, outputting the results
+    for ( let videoId in videoReports) {
+        videoReports[videoId] = await videoReports[videoId]
+        console.log(videoReports[videoId])
     }
 })()
