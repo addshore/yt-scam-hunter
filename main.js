@@ -1,9 +1,11 @@
 const ytsr = require('ytsr');
 const columnify = require('columnify')
 const fs = require('fs');
+const os = require("os")
 const ytdl = require('ytdl-core');
 const extractFrame = require('ffmpeg-extract-frame')
 const tesseract = require("node-tesseract-ocr")
+const chalk = require('chalk');
 
 const sleep = require('util').promisify(setTimeout)
 
@@ -44,6 +46,7 @@ async function videos() {
 }
 
 async function processVideo(video) {
+    try{
     let report = ""
     let youtubeVideoId = video.url.split("=")[1];
 
@@ -114,14 +117,23 @@ async function processVideo(video) {
             report += " - \"" + badStrings[j] + "\"\n"
         }
     }
-    return report.trim()
+    return {
+        evilDetected: badStrings.length > 0,
+        log: report.trim()
+    }
+    } catch (error) {
+        return {
+            evilDetected: null,
+            log: report + error.message
+        }
+    }
 }
 
 /**
  * Looks for bad strings in the text of the video snapshot
  */
  function textIncludesBadStuff(text) {
-    let text = text.toLowerCase();
+    text = text.toLowerCase();
     let foundBadStrings = []
     for (i = 0; i < badStrings.length; i++) {
         let badString = badStrings[i].toLowerCase();
@@ -138,16 +150,28 @@ async function processVideo(video) {
     let videosData = await videos();
     console.log(columnify(videosData, {}))
     console.log("Got " + videosData.length + " videos");
+
+    const chunkSize = os.cpus().length;
+    console.log("Chunk size: " + chunkSize);
+
     let videoReports = []
-    // Set all of our work up
-    for (let i = 0; i < videosData.length; i++) {
-        let video = videosData[i];
-        let videoId = video.url.split("=")[1];
-        videoReports[videoId] = processVideo(video);
-    }
-    // And wait for them to finish, outputting the results
-    for ( let videoId in videoReports) {
-        videoReports[videoId] = await videoReports[videoId]
-        console.log(videoReports[videoId])
+    for (let i = 0; i < videosData.length; i += chunkSize) {
+        const chunk = videosData.slice(i, i + chunkSize);
+        // do a chunk of work
+        for (let i = 0; i < chunk.length; i++) {
+            let video = chunk[i];
+            let videoId = video.url.split("=")[1];
+            videoReports[videoId] = processVideo(video);
+        }
+        for (let i = 0; i < chunk.length; i++) {
+            let video = chunk[i];
+            let videoId = video.url.split("=")[1];
+            videoReports[videoId] = await videoReports[videoId]
+            if(videoReports[videoId].evilDetected) {
+                console.log(chalk.red(videoReports[videoId].log))
+            } else {
+                console.log(videoReports[videoId].log)
+            }
+        }
     }
 })()

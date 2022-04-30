@@ -10,8 +10,22 @@ It does this by:
 4) Extracting text from that image
 5) Checking the text against a bad words list
 
-## Requirements
+## Setup
+
+Install the dependencies:
 
 ```sh
 apt install ffmpeg tesseract-ocr
+```
+
+Install the node packages:
+
+```sh
+npm install
+```
+
+## Usage
+
+```sh
+node main.js
 ```

@@ -8,6 +8,7 @@
   },
   "author": "Addshore",
   "dependencies": {
+    "chalk": "^4.1.2",
     "columnify": "^1.6.0",
     "ffmpeg-extract-frame": "^1.0.2",
     "node-tesseract-ocr": "^2.2.1",
