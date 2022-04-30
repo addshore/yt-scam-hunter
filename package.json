@@ -1,0 +1,14 @@
+{
+  "name": "yt-scam-hunter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Addshore",
+  "dependencies": {
+    "columnify": "^1.6.0",
+    "ytsr": "^3.8.0"
+  }
+}
