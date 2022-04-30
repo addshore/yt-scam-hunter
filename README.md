@@ -1,14 +1,27 @@
-# yt-scam-hunters
+# yt-scam-hunter
 
-A little app to hunt for crypto scams on YouTube.
+A little app to hunt for crypto scams on YouTube inspired from some [shouting into the void at YouTube](https://twitter.com/addshore/status/1520154767036751873).
 
-It does this by:
+If it's this easy to save their users what is most likley millions of USD a month from being scammed, they should really do something...
 
-1) Perfoming a YouTube search for live streams
-2) Downloading a short live video from the stream
-3) Using the first frame of that video as an image
-4) Extracting text from that image
-5) Checking the text against a bad words list
+Hunting works by:
+
+1) Perfoming a YouTube search for live streams, currently looking for `"eth" OR "btc"`
+2) Downloading a few seconds of live video from the stream
+3) Convert the first frame of that video to an image
+4) Extracting text from that image using OCR
+5) Checking the text against a [bad words list](./badlist.txt) 
+
+![](https://i.imgur.com/A9uR5fX.png)
+![](https://i.imgur.com/RI3DpW1.png)
+
+In the future it would be nice to:
+
+- Auto flag to YouTube
+- Have fuzzier string / regex detection
+- Follow URLs detected in text to hunt down wallet addresses
+- Also report those wallet addresses to somewhere?
+- Convince YouTube to do a better job?
 
 ## Setup
 
@@ -26,6 +39,19 @@ npm install
 
 ## Usage
 
+Just run the script
+
 ```sh
 node main.js
 ```
+
+You'll see output like in the screenshots above.
+
+You'll also start seeing data in a `./.data` directory.
+
+For each video you will keep:
+
+- JSON hodling the video data
+- MP4 snippet of the stream
+- JPG frame from the screen
+- TXT extracted from the frame
