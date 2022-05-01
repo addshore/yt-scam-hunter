@@ -18,7 +18,6 @@ Hunting works by:
 In the future it would be nice to:
 
 - Auto flag to YouTube
-- Detect fresh scam domains from the text of videos matched
 - Validate that collected wallet addresses are real? (Remove if not)
 - Also report those wallet addresses to somewhere?
 - QR code detection? [example](https://i.imgur.com/1jubd7R.png)
@@ -60,6 +59,15 @@ For each video you will keep some files in a `.data` directory:
 - MP4 snippet of the stream
 - JPG frame from the screen
 - TXT extracted from the frame
+
+### New scam domain extraction
+
+As new YouTube videos are detected, the text to them is saved.
+This script will look at that text and extract new working domains, which are probably scam links.
+
+```sh
+node domains.js
+```
 
 ### Wallet extraction
 
