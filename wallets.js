@@ -4,6 +4,12 @@ const badDb = new Database({path:'./bad.db.yml'});
 const xpath = require('xpath')
 const dom = require('xmldom').DOMParser
 
+const controller = new AbortController()
+const timeout = setTimeout(() => {
+	controller.abort();
+}, 3000);
+
+
 // Each regex is surrounded with (?:[^a-zA-Z0-9]) to avoid matching on other parts of other wallet addresses
 // https://regexland.com/regex-bitcoin-addresses/
 const BTC_REGEX = /(?:[^a-zA-Z0-9])([13]{1}[a-km-zA-HJ-NP-Z1-9]{26,33}|bc1[a-z0-9]{39,59})(?:[^a-zA-Z0-9])/g
@@ -12,7 +18,7 @@ const ETH_REGEX = /(?:[^a-zA-Z0-9])(0x[a-fA-F0-9]{40})(?:[^a-zA-Z0-9])/g
 
 async function htmlForUrl(url) {
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, {signal: controller.signal});
         const html = await response.text();
         return html;
     } catch (e) {
