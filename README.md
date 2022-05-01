@@ -10,7 +10,7 @@ Hunting works by:
 2) Downloading a few seconds of live video from the stream
 3) Convert the first frame of that video to an image
 4) Extracting text from that image using OCR
-5) Checking the text against a [bad words list](./badlist.txt) 
+5) Checking the text against a [bad word domains & regex](./bad.db.yml) 
 
 ![](https://i.imgur.com/A9uR5fX.png)
 ![](https://i.imgur.com/RI3DpW1.png)
@@ -18,7 +18,6 @@ Hunting works by:
 In the future it would be nice to:
 
 - Auto flag to YouTube
-- Have fuzzier string / regex detection
 - Follow URLs detected in text to hunt down wallet addresses
 - Also report those wallet addresses to somewhere?
 - Convince YouTube to do a better job?

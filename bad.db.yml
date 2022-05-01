@@ -1,0 +1,30 @@
+- - domains
+  - - 2xmusk.com
+    - 2022binance.com
+    - ark-elonmusk.com
+    - btc-invest.info
+    - buterin-eth2022.net
+    - doublems.org
+    - elon-2x.org
+    - ethcrypto.us
+    - eth-double.info
+    - getx2ether.com
+    - givecrypt.in
+    - givetesla22.com
+    - invest-tesla.org
+    - livex2.tech
+    - msgetx2.net
+    - msgetx2.org
+    - musk-space.org
+    - musklive.tech
+    - sol2x.info
+    - tesla-join.com
+    - tesla-seo.com
+    - teslagive22.com
+    - teslax-event.com
+    - tesla22.us
+    - x2ether.us
+    - x2musk.io
+- - regex
+  # <num> <CRYPTO> and get <num> <crypto>?
+  - - /\d+((\.|,)\d+)?\+? ?(ETH|BTC|SOL|ADA),? ?(to|you)? ?(get|to|get|receive|and),? ?\d+((\.|,)\d+)?\+? ?(ETH|BTC|SOL|ADA)?/i

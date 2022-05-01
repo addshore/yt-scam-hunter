@@ -6,10 +6,11 @@ const ytdl = require('ytdl-core');
 const extractFrame = require('ffmpeg-extract-frame')
 const tesseract = require("node-tesseract-ocr")
 const chalk = require('chalk');
-
+const { exit } = require('process');
+const Database = require('st.db');
 const sleep = require('util').promisify(setTimeout)
 
-const badStrings = fs.readFileSync("./badlist.txt", 'utf8').split("\n");;
+const badDb = new Database({path:'./bad.db.yml'});
 
 /**
  * Searches on YouTube for live streams that look like crypto scams
@@ -110,15 +111,15 @@ async function processVideo(video) {
             return ""
         })
 
-    let badStrings = textIncludesBadStuff(extractedText);
-    if (badStrings.length > 0) {
+    let foundStuff = await textIncludesBadStuff(extractedText);
+    if (foundStuff.length > 0) {
         report += "Detected known bad strings:\n"
-        for (let j = 0; j < badStrings.length; j++) {
-            report += " - \"" + badStrings[j] + "\"\n"
+        for (let j = 0; j < foundStuff.length; j++) {
+            report += " - \"" + foundStuff[j] + "\"\n"
         }
     }
     return {
-        evilDetected: badStrings.length > 0,
+        evilDetected: foundStuff.length > 0,
         log: report.trim()
     }
     } catch (error) {
@@ -132,16 +133,27 @@ async function processVideo(video) {
 /**
  * Looks for bad strings in the text of the video snapshot
  */
- function textIncludesBadStuff(text) {
+async function textIncludesBadStuff(text) {
     text = text.toLowerCase();
-    let foundBadStrings = []
-    for (i = 0; i < badStrings.length; i++) {
-        let badString = badStrings[i].toLowerCase();
-        if (text.includes(badString)) {
-            foundBadStrings.push(badString);
+    let foundBadStuff = []
+
+    let badDomains = await badDb.get("domains")
+    for (i = 0; i < badDomains.length; i++) {
+        let badDomain = badDomains[i].toLowerCase();
+        if (text.includes(badDomain)) {
+            foundBadStuff.push(badDomain);
         }
     }
-    return foundBadStrings
+
+    let badRegex = await badDb.get("regex")
+    for (i = 0; i < badRegex.length; i++) {
+        let badRegexString = badRegex[i];
+        if (text.match(badRegexString)) {
+            foundBadStuff.push(badRegexString);
+        }
+    }
+
+    return foundBadStuff
 }
 
 // Tie things together

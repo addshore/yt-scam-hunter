@@ -12,6 +12,8 @@
     "columnify": "^1.6.0",
     "ffmpeg-extract-frame": "^1.0.2",
     "node-tesseract-ocr": "^2.2.1",
+    "st.db": "^4.0.7",
+    "yaml": "^2.0.1",
     "youtube.com-extended": "^2.0.4",
     "ytdl-core": "^4.11.0",
     "ytsr": "^3.8.0"
