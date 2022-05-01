@@ -17,7 +17,6 @@ Hunting works by:
 
 In the future it would be nice to:
 
-- Auto flag to YouTube
 - Validate that collected wallet addresses are real? (Remove if not)
 - Also report those wallet addresses to somewhere?
 - QR code detection? [example](https://i.imgur.com/1jubd7R.png)
