@@ -46,6 +46,7 @@ async function isUrl200Response(url) {
     for (i = 0; i < newlyDetectedDomains.length; i++) {
         let domain = newlyDetectedDomains[i];
         let url = "https://" + domain;
+        console.log("Checking " + url);
         let isLive = await isUrl200Response(url);
         if (isLive) {
             console.log(domain + " is live, pushing to the DB!");

@@ -70,20 +70,27 @@ async function processVideo(video) {
     // Write JSON
     fs.writeFileSync(outputJson, JSON.stringify(video,null,2));
 
-    // Write Video
+    // Check and Write Video
+    let vidFetchFail = false;
     let readableStream = ytdl('https://www.youtube.com/watch?v=' + youtubeVideoId, {
         begin : Date.now(),
     })
+    readableStream.on('error', function(err) {
+        vidFetchFail = "Video fetch failed at the readableStream stage: " + youtubeVideoId + "\n" + err;
+    })
     readableStream.pipe(fs.createWriteStream(outputVideo));
-    // Wait for file to exist on disk
-    while (!fs.existsSync(outputVideo)) {
+    // Wait for file to exist on disk and be at least 1 MB (unles we failed)
+    while (vidFetchFail || !fs.existsSync(outputVideo) || fs.statSync(outputVideo).size < 1000000) {
         await sleep(100);
     }
-    // wait until file is 1 MB in size
-    while (fs.statSync(outputVideo).size < 1000000) {
-        await sleep(100)
-    }
     readableStream.destroy();
+    // Oh noes, we failed
+    if (vidFetchFail) {
+        return {
+            evilDetected: null,
+            log: vidFetchFail,
+        }
+    }
     
     // Write Snapshot
     await extractFrame({
@@ -98,6 +105,7 @@ async function processVideo(video) {
             lang: "eng",
             oem: 1,
             psm: 3,
+            dpi: 2400,
         })
         .then((text) => {
             fs.writeFileSync(outputText, text);
