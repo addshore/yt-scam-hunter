@@ -158,7 +158,7 @@ async function textIncludesBadStuff(text) {
 
 // Tie things together
 (async () => {
-    console.log("Starting...");
+    console.log("Looking for suspect videos on YouTube...");
     let videosData = await videos();
     console.log(columnify(videosData, {}))
     console.log("Got " + videosData.length + " videos");

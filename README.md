@@ -18,7 +18,8 @@ Hunting works by:
 In the future it would be nice to:
 
 - Auto flag to YouTube
-- Follow URLs detected in text to hunt down wallet addresses
+- Detect fresh scam domains from the text of videos matched
+- Validate that collected wallet addresses are real? (Remove if not)
 - Also report those wallet addresses to somewhere?
 - Convince YouTube to do a better job?
 
@@ -41,7 +42,7 @@ npm install
 Just run the script
 
 ```sh
-node main.js
+node ytlive.js
 ```
 
 You'll see output like in the screenshots above.

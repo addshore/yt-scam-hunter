@@ -8,6 +8,7 @@
     - elon-2x.org
     - ethcrypto.us
     - eth-double.info
+    - eth-japan.org
     - getx2ether.com
     - givecrypt.in
     - givetesla22.com
@@ -26,5 +27,38 @@
     - x2ether.us
     - x2musk.io
 - - regex
-  # <num> <CRYPTO> and get <num> <crypto>?
-  - - /\d+((\.|,)\d+)?\+? ?(ETH|BTC|SOL|ADA),? ?(to|you)? ?(get|to|get|receive|and),? ?\d+((\.|,)\d+)?\+? ?(ETH|BTC|SOL|ADA)?/i
+  - - /\d+((\.|,)\d+)?\+? ?(ETH|BTC|SOL|ADA),? ?(to|you)?
+      ?(get|to|get|receive|and),? ?\d+((\.|,)\d+)?\+? ?(ETH|BTC|SOL|ADA)?/i
+- - wallets.eth
+  - - "0x1068814e2426F41FA06A5378c97ADb7d3625632A"
+    - "0x2a2E363740D052726d56e29d0C6E16dF489Af439"
+    - "0xc56B159034119e977eFEeed6c7243855FDA1e19B"
+    - "0xF34EBb0a8514eDd765A712e099704C85f7DEAb6B"
+    - "0x5273446dD3a7d8fCf950eCa29190a6A3300143a8"
+    - "0x44a0f6516e3bd6B4Acd47F2dC145D7d64Cf32F05"
+    - "0x56bb7f61b2d0626c7faf9ff130577409330185b7"
+    - "0x6b12e1d8C185b154aa3c8d42C3E2Aa4270d8B191"
+    - "0x605b92B58cBb02C9083a01CA9b691F18B76431A6"
+    - "0xC7fb5eDaaE84213cF763712a08B0101009C176AE"
+    - "0x121367553Ee09A4FC30bF518fB9bfef1b3f4c24f"
+    - "0x40E9D098b45cA26cE84512B7d0F0ec63a32835ed"
+    - "0x2813bdee683FDAc6Fe17B3d2b919dcC3dC953195"
+    - "0xECE537e1d822780D5e763a330eEc50060eDcF7B1"
+    - "0xa2769B06D3e8E28CEf5D7379cCCb892a538b4D6f"
+- - wallets.btc
+  - - 1nyiZVzPKcdagQNoRSPKiKHBviHV4sqGX
+    - 1K4HtvCBTdp4Td7PH8Pnr3oNfBG7bt52FE
+    - bc1qkwlqg0dt86gny7uvtpum2yfp4px3tgdcrsujha
+    - bc1qdhw95csvhcenlmdu2t98pg0s2396pd7ac54t0c
+    - bc1q9crczphtr02cwqf25p7ukxwkkqzl84ma2n49ql
+    - 1Jb8xjNBkWh5nAhjGsESLahZauDy1PHfeK
+    - 1rXWfV333s87v551nrWuda3fuu5138
+    - 3pu1s5xW998ZatMeeft2KvfB64G9S
+    - 3yXzmxHfJ4fmtHmjLAiquEioGioG3MPBv
+    - 1a5h6g89rHF8fct5thefmn3teT9
+    - 3E6nf7d2qDbq7rXxdLP5L1upCeRXvosX
+    - bc1qgjy92sz8dqez7t3vf8vezezqpydssjdkcm8n34
+    - bc1qv69d24ncxmw4x0se7s9l7nt6qw0wqynah5n8kx
+    - bc1q80agmcqdrwhtlc2ukws24hz2r8skmx38n86u4y
+    - 1DZ6bBGtSTckN7i5DCLHsgGETMj9AzA1NH
+    - bc1q6h4hmzk62wqs9fw46xyatea3mr2yxsmsp9exjz
