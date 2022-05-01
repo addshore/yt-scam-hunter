@@ -6,7 +6,6 @@ const ytdl = require('ytdl-core');
 const extractFrame = require('ffmpeg-extract-frame')
 const tesseract = require("node-tesseract-ocr")
 const chalk = require('chalk');
-const { exit } = require('process');
 const Database = require('st.db');
 const sleep = require('util').promisify(setTimeout)
 
@@ -47,11 +46,10 @@ async function videos() {
 }
 
 async function processVideo(video) {
-    try{
     let report = ""
     let youtubeVideoId = video.url.split("=")[1];
 
-    report += "Processing " + video.url + "\n"
+    report += "Processed " + video.url + "\n"
     let outputJson = "./.data/" + youtubeVideoId + ".json";
     let outputVideo = "./.data/" + youtubeVideoId + ".mp4";
     let outputSnap = "./.data/" + youtubeVideoId + ".jpg";
@@ -122,12 +120,6 @@ async function processVideo(video) {
         evilDetected: foundStuff.length > 0,
         log: report.trim()
     }
-    } catch (error) {
-        return {
-            evilDetected: null,
-            log: report + error.message
-        }
-    }
 }
 
 /**
@@ -148,7 +140,8 @@ async function textIncludesBadStuff(text) {
     let badRegex = await badDb.get("regex")
     for (i = 0; i < badRegex.length; i++) {
         let badRegexString = badRegex[i];
-        if (text.match(badRegexString)) {
+        let regex = new RegExp(badRegexString,'i');
+        if (text.match(regex)) {
             foundBadStuff.push(badRegexString);
         }
     }
@@ -166,9 +159,21 @@ async function textIncludesBadStuff(text) {
     const chunkSize = os.cpus().length;
     console.log("Chunk size: " + chunkSize);
 
+    let badVideos = await badDb.get("videos")
+    if (badVideos == undefined) {
+        badVideos = []
+    }
+    // filter out videos that are already detected
+    let filteredVideos = videosData.filter(function(video) {
+        if( badVideos.includes(video.url) ) {
+            console.log(chalk.red("Already detected " + video.url + " as bad (skipping).."))
+        }
+        return !badVideos.includes(video.url);
+    })
+
     let videoReports = []
-    for (let i = 0; i < videosData.length; i += chunkSize) {
-        const chunk = videosData.slice(i, i + chunkSize);
+    for (let i = 0; i < filteredVideos.length; i += chunkSize) {
+        const chunk = filteredVideos.slice(i, i + chunkSize);
         // do a chunk of work
         for (let i = 0; i < chunk.length; i++) {
             let video = chunk[i];
@@ -178,11 +183,22 @@ async function textIncludesBadStuff(text) {
         for (let i = 0; i < chunk.length; i++) {
             let video = chunk[i];
             let videoId = video.url.split("=")[1];
-            videoReports[videoId] = await videoReports[videoId]
-            if(videoReports[videoId].evilDetected) {
-                console.log(chalk.red(videoReports[videoId].log))
-            } else {
-                console.log(videoReports[videoId].log)
+            
+            // Try and process the video :)
+            try{
+                videoReports[videoId] = await videoReports[videoId]
+                if(videoReports[videoId].evilDetected) {
+                    // Collect the bad URL...
+                    if (!badVideos.includes(video.url)) {
+                        badVideos.push(video.url);
+                        badDb.push("videos", video.url);
+                    }
+                    console.log(chalk.red(videoReports[videoId].log))
+                } else {
+                    console.log(videoReports[videoId].log)
+                }
+            } catch (error) {
+                console.log(error.message)
             }
         }
     }

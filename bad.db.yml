@@ -4,6 +4,7 @@
     - ark-elonmusk.com
     - btc-invest.info
     - buterin-eth2022.net
+    - cryptoshelpinghand.com
     - doublems.org
     - double-ether.org
     - elon-2x.org
@@ -29,8 +30,10 @@
     - x2ether.us
     - x2musk.io
 - - regex
-  - - /\d+((\.|,)\d+)?\+? ?(ETH|BTC|SOL|ADA),? ?(to|you)?
-      ?(get|to|get|receive|and),? ?\d+((\.|,)\d+)?\+? ?(ETH|BTC|SOL|ADA)?/i
+  - - Mr\.? Beast Crypto Charity Stream
+    - double\syour\scrypto\s+SCAN\sQR[\s-]CODE
+    - \d+((\.|,)\d+)?\+? ?(ETH|BTC|SOL|ADA),? ?(to|you)?
+      ?(get|to|get|receive|and),? ?\d+((\.|,)\d+)?\+? ?(ETH|BTC|SOL|ADA)?
 - - wallets.eth
   - - "0x1068814e2426F41FA06A5378c97ADb7d3625632A"
     - "0x2a2E363740D052726d56e29d0C6E16dF489Af439"
@@ -64,3 +67,15 @@
     - bc1q80agmcqdrwhtlc2ukws24hz2r8skmx38n86u4y
     - 1DZ6bBGtSTckN7i5DCLHsgGETMj9AzA1NH
     - bc1q6h4hmzk62wqs9fw46xyatea3mr2yxsmsp9exjz
+- - videos
+  - - https://www.youtube.com/watch?v=oLgGaKb8bBI
+    - https://www.youtube.com/watch?v=EgWnc4gTTKg
+    - https://www.youtube.com/watch?v=0w3IuO-Wo8Q
+    - https://www.youtube.com/watch?v=TiBoVMpe7VI
+    - https://www.youtube.com/watch?v=F3cwWJ52D8U
+    - https://www.youtube.com/watch?v=HpK_eYVzWIk
+    - https://www.youtube.com/watch?v=yWAL6mhOn_s
+    - https://www.youtube.com/watch?v=kIhZw-rAg3o
+    - https://www.youtube.com/watch?v=GvB6Sfbl8nU
+    - https://www.youtube.com/watch?v=NQLyiBhDMuY
+    - https://www.youtube.com/watch?v=D76mcQgKa28

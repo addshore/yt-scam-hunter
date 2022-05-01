@@ -21,6 +21,9 @@ In the future it would be nice to:
 - Detect fresh scam domains from the text of videos matched
 - Validate that collected wallet addresses are real? (Remove if not)
 - Also report those wallet addresses to somewhere?
+- QR code detection? [example](https://i.imgur.com/1jubd7R.png)
+- Check live chat messages for text too
+- Check description text too?
 - Convince YouTube to do a better job?
 
 ## Setup
@@ -39,19 +42,30 @@ npm install
 
 ## Usage
 
-Just run the script
+There are a few scripts you can run
+
+### YouTube live video scam detection
 
 ```sh
 node ytlive.js
 ```
 
-You'll see output like in the screenshots above.
+You'll see a list of videos being searched.
+You'll see any that are flagged as bad.
+The `bad.db.yml` will be updated
 
-You'll also start seeing data in a `./.data` directory.
-
-For each video you will keep:
+For each video you will keep some files in a `.data` directory:
 
 - JSON hodling the video data
 - MP4 snippet of the stream
 - JPG frame from the screen
 - TXT extracted from the frame
+
+### Wallet extraction
+
+```sh
+node wallets.js
+```
+
+This will look at the found domains in the `bad.db.yml` and search for wallet addresses.
+Wallet addresses will be stored in `bad.db.yml`
