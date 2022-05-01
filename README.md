@@ -12,9 +12,6 @@ Hunting works by:
 4) Extracting text from that image using OCR
 5) Checking the text against a [bad word domains & regex](./bad.db.yml) 
 
-![](https://i.imgur.com/A9uR5fX.png)
-![](https://i.imgur.com/RI3DpW1.png)
-
 In the future it would be nice to:
 
 - Validate that collected wallet addresses are real? (Remove if not)
@@ -44,6 +41,9 @@ There are a few scripts you can run
 
 ### YouTube live video scam detection
 
+![](https://i.imgur.com/A9uR5fX.png)
+![](https://i.imgur.com/2OR1sr4.png)
+
 ```sh
 node ytlive.js
 ```
@@ -59,7 +59,7 @@ For each video you will keep some files in a `.data` directory:
 - JPG frame from the screen
 - TXT extracted from the frame
 
-### YouTuve live video scam reporting
+### YouTube live video scam reporting
 
 **WORK IN PROGRESS**
 
@@ -81,11 +81,15 @@ This will ask you to login and then report all videos to YouTube with the reason
 As new YouTube videos are detected, the text to them is saved.
 This script will look at that text and extract new working domains, which are probably scam links.
 
+![](https://i.imgur.com/ntDMV7M.png)
+
 ```sh
 node domains.js
 ```
 
 ### Wallet extraction
+
+![](https://i.imgur.com/3xL5XOE.png)
 
 ```sh
 node wallets.js
