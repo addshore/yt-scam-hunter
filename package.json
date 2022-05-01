@@ -11,6 +11,8 @@
     "chalk": "^4.1.2",
     "columnify": "^1.6.0",
     "ffmpeg-extract-frame": "^1.0.2",
+    "google-auth-library": "^7.14.1",
+    "googleapis": "^100.0.0",
     "node-fetch": "^2.6.7",
     "node-tesseract-ocr": "^2.2.1",
     "st.db": "^4.0.7",

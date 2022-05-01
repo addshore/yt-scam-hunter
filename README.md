@@ -60,6 +60,23 @@ For each video you will keep some files in a `.data` directory:
 - JPG frame from the screen
 - TXT extracted from the frame
 
+### YouTuve live video scam reporting
+
+**WORK IN PROGRESS**
+
+You need to have run the detections script first.
+This will populate a list of bad videos in `bad.db.yml`.
+
+You currently also need to have a `google_client_secret.json` for an OAauth client for Google apis.
+
+Then you can run the script
+
+```sh
+node report.js
+```
+
+This will ask you to login and then report all videos to YouTube with the reason `Violent, hateful, or dangerous > Digital security` (As the API doesnt provide a better choosable reason...)
+
 ### New scam domain extraction
 
 As new YouTube videos are detected, the text to them is saved.
