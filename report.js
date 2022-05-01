@@ -62,7 +62,7 @@ function reportVideo(videoUrl, successCallback) {
             }
             if( response.status = 204) {
                 console.log('Successfully reported: ' + videoId);
-                successCallback(videoId)
+                successCallback(videoUrl)
                 return
             }
             console.log("Unknown response for: " + videoId)
