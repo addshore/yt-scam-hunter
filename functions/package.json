@@ -15,9 +15,13 @@
   "main": "index.js",
   "dependencies": {
     "@google-cloud/storage": "^5.19.4",
+    "ffmpeg-extract-frame": "^1.0.2",
     "firebase-admin": "^10.0.2",
     "firebase-functions": "^3.18.0",
-    "tmp": "^0.2.1"
+    "tesseract.js": "^2.1.5",
+    "tmp": "^0.2.1",
+    "ytdl-core": "^4.11.0",
+    "ytsr": "^3.8.0"
   },
   "devDependencies": {
     "eslint": "^8.9.0",

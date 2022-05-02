@@ -5,7 +5,7 @@ const {Storage} = require('@google-cloud/storage');
 const ytdl = require('ytdl-core');
 const fs = require('fs');
 const extractFrame = require('ffmpeg-extract-frame')
-const tesseract = require("node-tesseract-ocr")
+const Tesseract = require('tesseract.js');
 const sleep = require('util').promisify(setTimeout)
 const ytsr = require('ytsr');
 
@@ -150,7 +150,6 @@ async function checkStream(videoId, previousScans) {
 
     let outputVideo = tmp.tmpNameSync() + '.mp4';
     let outputSnap = tmp.tmpNameSync() + '.jpg';
-    let outputText = tmp.tmpNameSync() + '.txt';
 
     // Check and Write Video (locally only)
     let vidFetchFail = false;
@@ -179,22 +178,11 @@ async function checkStream(videoId, previousScans) {
     })
 
     // Write text
-    let extractedText = await tesseract
-        .recognize(outputSnap, {
-            lang: "eng",
-            oem: 1,
-            psm: 3,
-            dpi: 2400,
-        })
-        .then((text) => {
-            fs.writeFileSync(outputText, text);
-            return text
-        })
-        .catch((error) => {
-            fs.writeFileSync(outputText, "");
-            console.log(error.message)
-            return ""
-        });
+    let recognizeResult = await Tesseract.recognize(
+        outputSnap,
+        'eng'
+    )
+    let extractedText = recognizeResult.data.text;
 
     /**
      * Looks for bad strings in the text of the video snapshot
@@ -281,10 +269,6 @@ async function checkStream(videoId, previousScans) {
         await bucketFile(videoId, 'report.txt', checkTime).save(report)
         await storage.bucket(bucketName).upload(outputSnap, {destination: bucketFileName(videoId, 'snapshot.jpg', checkTime)});
         await bucketFile(videoId, 'text.txt', checkTime).save(extractedText)
-        // And make them public
-        await bucketFile(videoId, 'report.txt', checkTime).makePublic()
-        await bucketFile(videoId, 'snapshot.jpg', checkTime).makePublic()
-        await bucketFile(videoId, 'text.txt', checkTime).makePublic()
 
         await collection.doc(videoId).update({
             badDetected: checkTime,
