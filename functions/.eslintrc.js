@@ -1,7 +1,7 @@
 module.exports = {
   root: true,
   env: {
-    es6: true,
+    es2017: true,
     node: true,
   },
   extends: [
@@ -9,6 +9,9 @@ module.exports = {
     "google",
   ],
   rules: {
-    quotes: ["error", "double"],
+    "quotes": ["error", "double"],
+    "max-len": "off",
+    "require-jsdoc": "off",
+    "valid-jsdoc": "off",
   },
 };
