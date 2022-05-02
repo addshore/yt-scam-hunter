@@ -37,6 +37,7 @@
     - x2musk.io
     - 2xelon.net
     - 2xeth.info
+    - crttesla.com
 - - regex
   - - Mr\.? Beast Crypto Charity Stream
     - double\syour\scrypto\s+SCAN\sQR[\s-]CODE
@@ -60,6 +61,7 @@
     - "0xa2769B06D3e8E28CEf5D7379cCCb892a538b4D6f"
     - "0x93aF6D58B54D0AcD0Cb76FD8b9A372C72A45A80d"
     - "0xbdA002c0df4Aab5655Da47E9666B30c565f90138"
+    - "0x115392e4D01E9A5dEea2c1bd0e036Cf2a0B5a2B4"
 - - wallets.btc
   - - 1nyiZVzPKcdagQNoRSPKiKHBviHV4sqGX
     - 1K4HtvCBTdp4Td7PH8Pnr3oNfBG7bt52FE
@@ -80,6 +82,7 @@
     - bc1qk7ykcjagvmwsv0wvptge69dwzgh7y77q0lsd73
     - 1117b61c82d2ce1de2d48e279bf5abc8
     - 1CRFMoC7wzvhdovuBMXYsTtxprgs8DNXfo
+    - bc1qfw64vld8gy4pc932fa072znhjnlq45qcp084ag
 - - videos
   - - https://www.youtube.com/watch?v=oLgGaKb8bBI
     - https://www.youtube.com/watch?v=EgWnc4gTTKg
@@ -130,3 +133,9 @@
     - https://www.youtube.com/watch?v=7Yzt1DWOW9E
     - https://www.youtube.com/watch?v=E0R0tKorOV4
     - https://www.youtube.com/watch?v=GsUDLVwRDv8
+    - https://www.youtube.com/watch?v=hD2CktnDujQ
+    - https://www.youtube.com/watch?v=Qd9fabeq1w0
+    - https://www.youtube.com/watch?v=dOU6ymfVdw0
+    - https://www.youtube.com/watch?v=ANZY-i-qdk4
+    - https://www.youtube.com/watch?v=UopRZJlJYl0
+    - https://www.youtube.com/watch?v=5we_iFruOyU
