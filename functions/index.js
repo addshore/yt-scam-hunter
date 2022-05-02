@@ -5,5 +5,8 @@ const hello = require('./hello');
 const suspectStreams = require('./suspectStreams');
 
 exports.hello = hello.hello
-exports.suspectStreamsGenerate = suspectStreams.suspectStreamsGenerate
-exports.suspectStreamsOnWrite = suspectStreams.suspectStreamsOnWrite
+exports.suspectStreamsSchedule = suspectStreams.schedule
+exports.suspectStreamsGenerate = suspectStreams.generate
+exports.suspectStreamsOnCreate = suspectStreams.onCreate
+exports.suspectStreamsOnUpdate = suspectStreams.onUpdate
+exports.suspectStreamsOnDelete = suspectStreams.onDelete

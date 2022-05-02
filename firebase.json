@@ -27,6 +27,9 @@
     },
     "storage": {
       "port": 5004
+    },
+    "pubsub": {
+      "port": 5005
     }
   }
 }
