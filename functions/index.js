@@ -1,11 +1,9 @@
 const {initializeApp} = require("firebase-admin/app");
 initializeApp();
 
-const hello = require("./hello");
 const suspectStreams = require("./suspectStreams");
 
 // HTTP Cloud Function
-exports.hello = hello.hello;
 exports.suspectStreamsGetBad = suspectStreams.getBad;
 
 // Callable Cloud Function
