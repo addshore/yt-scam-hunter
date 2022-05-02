@@ -211,7 +211,7 @@ async function generateFromSearch(searchString) {
       updated++;
     }
 
-    await storage.bucket(bucketName).file(videoId + "/video.json").save(JSON.stringify(videoData[i].video, null, 2));
+    await storage.bucket(bucketName).file(videoId + "/video.json").save(JSON.stringify(videoData[i].video, null, 2), {public: true});
   }
 
   return {
@@ -343,9 +343,12 @@ async function checkStream(videoId, previousScans) {
     }
 
     // Write the report, JSON, frame, and text
-    await bucketFile(videoId, "report.txt", checkTime).save(report);
-    await storage.bucket(bucketName).upload(outputSnap, {destination: bucketFileName(videoId, "snapshot.jpg", checkTime)});
-    await bucketFile(videoId, "text.txt", checkTime).save(extractedText);
+    await bucketFile(videoId, "report.txt", checkTime).save(report, {public: true});
+    await storage.bucket(bucketName).upload(outputSnap, {
+      destination: bucketFileName(videoId, "snapshot.jpg", checkTime),
+      public: true,
+    });
+    await bucketFile(videoId, "text.txt", checkTime).save(extractedText, {public: true});
 
     await collection.doc(videoId).update({
       badDetected: checkTime,
