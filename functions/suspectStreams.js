@@ -9,23 +9,60 @@ const Tesseract = require("tesseract.js");
 const sleep = require("util").promisify(setTimeout);
 const ytsr = require("ytsr");
 
-const bucketName = "scamhunter-public";
 const db = getFirestore();
 const collection = db.collection("suspectStreams");
 const storage = new Storage();
 
-exports.schedule = functions.pubsub.schedule("every 1 hour").onRun(async (context) => {
-  const result = await generateFromSearch("\"eth\" OR \"btc\"");
+// //////////////////
+// Configuration
+// //////////////////
+const bucketName = "scamhunter-public";
+// How often to search for new streams
+const scanSchedule = "every 2 hours";
+const scanSearchString = "\"eth\" OR \"btc\"";
+// How often to cleanup videos that are no longer live
+const cleanupSchedule = "every 1 hours";
+// How often to check if a video is still live
+const cleanupCheckHours = 3;
+
+// Constants
+const STATUS_LIVE = "live";
+const STATUS_ENDED = "ended";
+
+// Run every 2 hours to avoid looking at too many videos
+// TODO a better solution would be look every 3 hours for videos that are still live? and at ALL new videos hourly?
+exports.generateSchedule = functions.pubsub.schedule(scanSchedule).onRun(async (context) => {
+  const result = await generateFromSearch(scanSearchString);
   functions.logger.info("Schedueled generateFromSearch ran", result);
 });
 
 // Testable from within the `firebase functions:shell`
 // with `suspectStreamsGenerate({})`
-exports.generate = functions.https.onCall( async (data, context) => {
-  return await generateFromSearch("\"eth\" OR \"btc\"");
+exports.generateCallable = functions.https.onCall( async (data, context) => {
+  return await generateFromSearch(scanSearchString);
 });
 
-exports.bad = functions.https.onRequest(async (request, response) => {
+exports.cleanupNonLive = functions.pubsub.schedule(cleanupSchedule).onRun(async (context) => {
+  const now = new Date();
+  const threeHoursAgo = new Date(now.getTime() - (cleanupCheckHours * 60 * 60 * 1000));
+
+  // Look for things we think are live, but that we havn't seen in 3 hours
+  const liveStreams = await collection.where("status", "==", STATUS_LIVE).where("lastSeen", "<=", threeHoursAgo).get();
+  // Iterate through live streams
+  for (let i = 0; i < liveStreams.size; i++) {
+    const liveStream = liveStreams.docs[i];
+    const currentStatus = await streamStatus(liveStream.data().url);
+    if (currentStatus != STATUS_LIVE) {
+      // Stream is not live anymore
+      functions.logger.info("Stream is not live anymore", liveStream.data().url);
+      await collection.doc(liveStream.id).update({
+        status: currentStatus,
+      });
+    }
+  }
+});
+
+exports.getBad = functions.https.onRequest(async (request, response) => {
   const badStreams = await collection.where("badDetected", "!=", null).get();
   const badStreamsData = {};
   for (let i = 0; i < badStreams.size; i++) {
@@ -44,6 +81,8 @@ exports.bad = functions.https.onRequest(async (request, response) => {
       },
     };
   }
+  // Cache on clients for 5 mins, in CDN for 10 mins
+  response.set('Cache-Control', 'public, max-age=300, s-maxage=600');
   response.send(badStreamsData);
 });
 
@@ -65,9 +104,12 @@ exports.onUpdate = functions.firestore
         functions.logger.info("onUpdate: Video already bad detected, skipping: " + videoId, {videoId: videoId});
         return;
       }
+      if (newValue.status != STATUS_LIVE) {
+        functions.logger.info("onUpdate: Video not live, skipping: " + videoId, {videoId: videoId});
+        return;
+      }
       // If the last seen value has changed (i.e. the video has been seen again) then check again
       // TODO maybe only scan if it has not been scanned in 2 hours?
-      // TODO maybe have an upper limit on the number of scans?
       if (newValue.lastSeen.toDate().getTime() != previousValue.lastSeen.toDate().getTime()) {
         const previousScanCount = newValue.scanned || 0;
         functions.logger.info("onUpdate: Video seen again, and scanned " + previousScanCount + " times, scanning again: " + videoId, {videoId: videoId, previousScanCount: previousScanCount});
@@ -83,6 +125,23 @@ exports.onDelete = functions.firestore
       functions.logger.info("onDelete: Video deleted, cleaning up: " + videoId, {videoId: videoId});
       await cleanupStoredFiles(videoId);
     });
+
+async function streamStatus(url) {
+  try {
+    const ytInfo = await ytdl.getBasicInfo(url);
+    if ( ytInfo.videoDetails.isLiveContent == false ) {
+      return STATUS_ENDED;
+    }
+  } catch (e) {
+    switch (e.message) {
+      case "Video unavailable":
+        return e.message;
+      default:
+        throw e;
+    }
+  }
+  return STATUS_LIVE;
+}
 
 async function generateFromSearch(searchString) {
   const filters1 = await ytsr.getFilters(searchString);
@@ -124,11 +183,13 @@ async function generateFromSearch(searchString) {
         lastSeen: seenDate,
         id: videoId,
         url: url,
+        status: STATUS_LIVE,
       });
       created++;
     } else {
       await collection.doc(videoId).update({
         lastSeen: seenDate,
+        status: STATUS_LIVE,
       });
       updated++;
     }
