@@ -25,11 +25,30 @@ exports.generate = functions.https.onCall( async (data, context) => {
     return await generateFromSearch('"eth" OR "btc"');
 });
 
+exports.bad = functions.https.onRequest(async (request, response) => {
+    let badStreams = await collection.where('badDetected', '!=', null).get()
+    let badStreamsData = {};
+    for (let i = 0; i < badStreams.size; i++) {
+        let data = badStreams.docs[i].data();
+        badStreamsData[data.id] = {
+            url: data.url,
+            times: {
+                firstSeend: data.firstSeen.toDate().toISOString(),
+                badDetected: data.badDetected,
+            },
+            files: {
+                details: bucketFile(data.id,'video.json').publicUrl(),
+                snapshot: bucketFile(data.id,'snapshot.jpg',data.badDetected).publicUrl(),
+                text: bucketFile(data.id,'text.txt',data.badDetected).publicUrl(),
+                report: bucketFile(data.id,'report.txt',data.badDetected).publicUrl(),
+            }
+        };
+    }
+    response.send(badStreamsData);
+})
+
 exports.onCreate = functions.firestore
     .document('suspectStreams/{videoId}')
-    // Only trigger this the first time a video is added (for now)
-    // In the future, do this hourly?
-    // And in that case we will need to skip if badDetected is already set :)
     .onCreate(async (snapshot, context) => {
         let videoId = context.params.videoId
         await checkStream(videoId, snapshot.data().scanned || 0);
@@ -255,13 +274,18 @@ async function checkStream(videoId, previousScans) {
 
         let report = ""
         for (let j = 0; j < foundStuff.length; j++) {
-            report += " - \"" + foundStuff[j] + "\"\n"
+            report += foundStuff[j] + "\n"
         }
 
         // Write the report, JSON, frame, and text
-        await storage.bucket(bucketName).file(videoId + '/' + checkTime + '_report.txt').save(report)
-        await storage.bucket(bucketName).upload(outputSnap, {destination: videoId + '/' + checkTime + '_frame.jpg'});
-        await storage.bucket(bucketName).file(videoId + '/' + checkTime + '_text.txt').save(extractedText)
+        await bucketFile(videoId, 'report.txt', checkTime).save(report)
+        await storage.bucket(bucketName).upload(outputSnap, {destination: bucketFileName(videoId, 'snapshot.jpg', checkTime)});
+        await bucketFile(videoId, 'text.txt', checkTime).save(extractedText)
+        // And make them public
+        await bucketFile(videoId, 'report.txt', checkTime).makePublic()
+        await bucketFile(videoId, 'snapshot.jpg', checkTime).makePublic()
+        await bucketFile(videoId, 'text.txt', checkTime).makePublic()
+
         await collection.doc(videoId).update({
             badDetected: checkTime,
             lastScanned: new Date(),
@@ -282,4 +306,15 @@ async function cleanupStoredFiles(videoId) {
     for (let i = 0; i < files.length; i++) {
         await files[i].delete();
     }
+}
+
+function bucketFile(videoId, fileName, checkTime) {
+    return storage.bucket(bucketName).file(bucketFileName(videoId, fileName, checkTime));
+}
+
+function bucketFileName(videoId, fileName, checkTime) {
+    if (checkTime != null) {
+        return videoId + '/' + checkTime + '_' + fileName
+    }
+    return videoId + '/' + fileName
 }
