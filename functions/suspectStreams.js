@@ -16,7 +16,7 @@ const storage = new Storage();
 // //////////////////
 // Configuration
 // //////////////////
-const bucketName = "scamhunter-public";
+const bucketName = "scamhunter.appspot.com";
 // How often to search for new streams
 const scanSchedule = "every 2 hours";
 // How often to scan a video if it keeps appearing
@@ -44,8 +44,6 @@ exports.generateSchedule = functions.pubsub.schedule(scanSchedule).onRun(async (
   functions.logger.info("Schedueled generateFromSearch ran", result);
 });
 
-// Testable from within the `firebase functions:shell`
-// with `suspectStreamsGenerate({})`
 exports.generateCallable = functions.https.onCall( async (data, context) => {
   return await generateFromSearch(scanSearchString);
 });
@@ -62,7 +60,7 @@ exports.markNonLive = functions.pubsub.schedule(cleanupSchedule).onRun(async (co
     const currentStatus = await streamStatus(liveStream.data().url);
     if (currentStatus != STATUS_LIVE) {
       // Stream is not live anymore
-      functions.logger.info("Stream is not live anymore", liveStream.data().url);
+      functions.logger.info("Stream is not live anymore: " + liveStream.data().url + " : " + currentStatus );
       await collection.doc(liveStream.id).update({
         status: currentStatus,
       });
@@ -72,7 +70,7 @@ exports.markNonLive = functions.pubsub.schedule(cleanupSchedule).onRun(async (co
 
 // Gets current live bad videos
 exports.getBad = functions.https.onRequest(async (request, response) => {
-  const badStreams = await collection.where("status","==",STATUS_LIVE).where("badDetected", "!=", null).get();
+  const badStreams = await collection.where("status", "==", STATUS_LIVE).where("badDetected", "!=", null).get();
   const badStreamsData = {};
   for (let i = 0; i < badStreams.size; i++) {
     const data = badStreams.docs[i].data();
@@ -95,7 +93,7 @@ exports.getBad = functions.https.onRequest(async (request, response) => {
   response.send(badStreamsData);
 });
 
-exports.checkNow = functions.runWith(LARGER_RUN_WITH).https.onCall( async (data, context) => {
+exports.checkOneNowCallable = functions.runWith(LARGER_RUN_WITH).https.onCall( async (data, context) => {
   const stream = await collection.doc(data.videoId).get();
   await checkStream(data.videoId, stream.data().scanned || 0);
 });
@@ -152,6 +150,8 @@ async function streamStatus(url) {
   } catch (e) {
     switch (e.message) {
       case "Video unavailable":
+      case "This video has been removed for violating YouTube's Terms of Service":
+      case "Status code: 410":
         return e.message;
       default:
         throw e;
@@ -360,13 +360,16 @@ async function checkStream(videoId, previousScans) {
   }
 }
 
+exports.cleanupStoredFilesCallable = functions.https.onCall( async (data, context) => {
+  await storage.bucket(bucketName).deleteFiles({
+    prefix: data.videoId + "/",
+  });
+});
+
 async function cleanupStoredFiles(videoId) {
-  const files = await storage.bucket(bucketName).getFiles({
+  await storage.bucket(bucketName).deleteFiles({
     prefix: videoId + "/",
   });
-  for (let i = 0; i < files.length; i++) {
-    await files[i].delete();
-  }
 }
 
 function bucketFile(videoId, fileName, checkTime) {
