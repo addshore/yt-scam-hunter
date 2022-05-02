@@ -19,6 +19,9 @@ const storage = new Storage();
 const bucketName = "scamhunter-public";
 // How often to search for new streams
 const scanSchedule = "every 2 hours";
+// How often to scan a video if it keeps appearing
+const scanFrequencyHours = 3;
+// Search string to use to look for videos to scan
 const scanSearchString = "\"eth\" OR \"btc\"";
 // How often to cleanup videos that are no longer live
 const cleanupSchedule = "every 1 hours";
@@ -26,8 +29,13 @@ const cleanupSchedule = "every 1 hours";
 const cleanupCheckHours = 3;
 
 // Constants
+const ONE_HOUR = 60 * 60 * 1000;
 const STATUS_LIVE = "live";
 const STATUS_ENDED = "ended";
+const LARGER_RUN_WITH = {
+  timeoutSeconds: 90,
+  memory: "512MB",
+};
 
 // Run every 2 hours to avoid looking at too many videos
 // TODO a better solution would be look every 3 hours for videos that are still live? and at ALL new videos hourly?
@@ -42,9 +50,9 @@ exports.generateCallable = functions.https.onCall( async (data, context) => {
   return await generateFromSearch(scanSearchString);
 });
 
-exports.cleanupNonLive = functions.pubsub.schedule(cleanupSchedule).onRun(async (context) => {
+exports.markNonLive = functions.pubsub.schedule(cleanupSchedule).onRun(async (context) => {
   const now = new Date();
-  const threeHoursAgo = new Date(now.getTime() - (cleanupCheckHours * 60 * 60 * 1000));
+  const threeHoursAgo = new Date(now.getTime() - (cleanupCheckHours * ONE_HOUR));
 
   // Look for things we think are live, but that we havn't seen in 3 hours
   const liveStreams = await collection.where("status", "==", STATUS_LIVE).where("lastSeen", "<=", threeHoursAgo).get();
@@ -82,47 +90,55 @@ exports.getBad = functions.https.onRequest(async (request, response) => {
     };
   }
   // Cache on clients for 5 mins, in CDN for 10 mins
-  response.set('Cache-Control', 'public, max-age=300, s-maxage=600');
+  response.set("Cache-Control", "public, max-age=300, s-maxage=600");
   response.send(badStreamsData);
 });
 
-exports.onCreate = functions.firestore
+exports.checkNow = functions.runWith(LARGER_RUN_WITH).https.onCall( async (data, context) => {
+  const stream = await collection.doc(data.videoId).get();
+  await checkStream(data.videoId, stream.data().scanned || 0);
+});
+
+exports.onCreate = functions.runWith(LARGER_RUN_WITH).firestore
     .document("suspectStreams/{videoId}")
     .onCreate(async (snapshot, context) => {
       const videoId = context.params.videoId;
+      // Check all videos as they are first seen
       await checkStream(videoId, snapshot.data().scanned || 0);
     });
 
-exports.onUpdate = functions.firestore
+exports.onUpdate = functions.runWith(LARGER_RUN_WITH).firestore
     .document("suspectStreams/{videoId}")
     .onUpdate(async (change, context) => {
       const videoId = context.params.videoId;
-      const previousValue = change.before.data();
       const newValue = change.after.data();
-      // Never check videos that area already detectedas "bad"
-      if (newValue.badDetected) {
-        functions.logger.info("onUpdate: Video already bad detected, skipping: " + videoId, {videoId: videoId});
-        return;
-      }
-      if (newValue.status != STATUS_LIVE) {
-        functions.logger.info("onUpdate: Video not live, skipping: " + videoId, {videoId: videoId});
-        return;
-      }
-      // If the last seen value has changed (i.e. the video has been seen again) then check again
-      // TODO maybe only scan if it has not been scanned in 2 hours?
-      if (newValue.lastSeen.toDate().getTime() != previousValue.lastSeen.toDate().getTime()) {
+
+      // If live, and not already bad, and not already checked in the last 3 hours
+      if (
+        newValue.status == STATUS_LIVE && // If live
+        !newValue.badDetected && // And not already marked as bad
+        ( !newValue.lastScanned || (new Date) - newValue.lastScanned > scanFrequencyHours * ONE_HOUR ) // And not already scanned in the last 3 hours
+      ) {
         const previousScanCount = newValue.scanned || 0;
-        functions.logger.info("onUpdate: Video seen again, and scanned " + previousScanCount + " times, scanning again: " + videoId, {videoId: videoId, previousScanCount: previousScanCount});
+        functions.logger.info("Video seen again, and scanned " + previousScanCount + " times, scanning again: " + videoId, {videoId: videoId, previousScanCount: previousScanCount});
         await checkStream(videoId, previousScanCount);
       }
-      functions.logger.debug("onUpdate: Nothing to do: " + videoId, {videoId: videoId});
+
+      // If not live, and not bad, we can delete it
+      if (
+        newValue.status != STATUS_LIVE && // If not live
+        !newValue.badDetected// And not marked as bad
+      ) {
+        functions.logger.info("Video not live, and not marked as bad, cleaning up: " + videoId, {videoId: videoId});
+        await change.after.ref.delete();
+      }
     });
 
 exports.onDelete = functions.firestore
     .document("suspectStreams/{videoId}")
     .onDelete(async (snapshot, context) => {
       const videoId = context.params.videoId;
-      functions.logger.info("onDelete: Video deleted, cleaning up: " + videoId, {videoId: videoId});
+      functions.logger.info("Video deleted, cleaning up: " + videoId, {videoId: videoId});
       await cleanupStoredFiles(videoId);
     });
 
@@ -205,7 +221,7 @@ async function generateFromSearch(searchString) {
 }
 
 async function checkStream(videoId, previousScans) {
-  // functions.logger.debug("checkStream: " + videoId, {videoId: videoId, previousScans: previousScans});
+  // functions.logger.debug(videoId, {videoId: videoId, previousScans: previousScans});
   let checkTime = new Date();
   checkTime = checkTime.toISOString();
 
