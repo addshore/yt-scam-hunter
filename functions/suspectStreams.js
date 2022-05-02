@@ -70,8 +70,9 @@ exports.markNonLive = functions.pubsub.schedule(cleanupSchedule).onRun(async (co
   }
 });
 
+// Gets current live bad videos
 exports.getBad = functions.https.onRequest(async (request, response) => {
-  const badStreams = await collection.where("badDetected", "!=", null).get();
+  const badStreams = await collection.where("status","==",STATUS_LIVE).where("badDetected", "!=", null).get();
   const badStreamsData = {};
   for (let i = 0; i < badStreams.size; i++) {
     const data = badStreams.docs[i].data();
