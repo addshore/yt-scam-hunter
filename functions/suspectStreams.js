@@ -95,7 +95,7 @@ exports.getBad = functions.runWith(RUN_WITH_WEB).https.onRequest(async (request,
     badStreamsData[data.id] = {
       url: data.url,
       times: {
-        firstSeend: data.firstSeen.toDate().toISOString(),
+        firstSeen: data.firstSeen.toDate().toISOString(),
         badDetected: data.badDetected,
       },
       files: {
@@ -135,7 +135,7 @@ exports.onUpdateCheckIfWeShouldCheckStream = functions.runWith(RUN_WITH_LARGER).
         newValue.status == STATUS_LIVE && // If live
         newValue.badDetected == undefined && // And not already marked as bad
         newValue.scanned <= 20 && // And not already scanned over 20 times...
-        ( newValue.lastScanned == undefined || (new Date) - newValue.lastScanned > scanFrequencyHours * ONE_HOUR ) // And not already scanned in the last 3 hours
+        ( newValue.lastScanned == undefined || (new Date) - newValue.lastScanned.toDate() > scanFrequencyHours * ONE_HOUR ) // And not already scanned in the last 3 hours
       ) {
         functions.logger.info("Scanning video on update: " + videoId, {newValue: newValue});
         await checkStream(videoId, newValue.scanned || 0);
