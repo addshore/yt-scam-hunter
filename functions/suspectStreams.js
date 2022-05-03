@@ -16,9 +16,9 @@ const storage = new Storage();
 // //////////////////
 // Configuration
 // //////////////////
-const bucketName = "scamhunter.appspot.com";
+const bucketName = "scam-hunter.appspot.com";
 // How often to search for new streams
-const scanSchedule = "every 2 hours";
+const scanSchedule = "every 1 hours";
 // How often to scan a video if it keeps appearing
 const scanFrequencyHours = 3;
 // Search string to use to look for videos to scan
@@ -26,15 +26,19 @@ const scanSearchString = "\"eth\" OR \"btc\"";
 // How often to cleanup videos that are no longer live
 const cleanupSchedule = "every 1 hours";
 // How often to check if a video is still live
-const cleanupCheckHours = 3;
+const cleanupCheckHours = 2;
 
 // Constants
 const ONE_HOUR = 60 * 60 * 1000;
 const STATUS_LIVE = "live";
 const STATUS_ENDED = "ended";
+const STATUS_NOTLIVE = "not-live";
+// https://cloud.google.com/functions/pricing
+// 0.000002900*10*120*2 = 0.00696 per call (vision API would be 0.0015 per call)
+// TODO check what is actually better? does this end in 2 min?
 const LARGER_RUN_WITH = {
-  timeoutSeconds: 90,
-  memory: "512MB",
+  timeoutSeconds: 120,
+  memory: "1GB",
 };
 
 // Run every 2 hours to avoid looking at too many videos
@@ -50,23 +54,28 @@ exports.generateCallable = functions.https.onCall( async (data, context) => {
 
 exports.markNonLive = functions.pubsub.schedule(cleanupSchedule).onRun(async (context) => {
   const now = new Date();
-  const threeHoursAgo = new Date(now.getTime() - (cleanupCheckHours * ONE_HOUR));
+  const someHoursAgo = new Date(now.getTime() - (cleanupCheckHours * ONE_HOUR));
 
   // Look for things we think are live, but that we havn't seen in 3 hours
-  const liveStreams = await collection.where("status", "==", STATUS_LIVE).where("lastSeen", "<=", threeHoursAgo).get();
+  const liveStreams = await collection.where("status", "==", STATUS_LIVE).where("lastSeen", "<=", someHoursAgo).get();
   // Iterate through live streams
   for (let i = 0; i < liveStreams.size; i++) {
-    const liveStream = liveStreams.docs[i];
-    const currentStatus = await streamStatus(liveStream.data().url);
-    if (currentStatus != STATUS_LIVE) {
-      // Stream is not live anymore
-      functions.logger.info("Stream is not live anymore: " + liveStream.data().url + " : " + currentStatus );
-      await collection.doc(liveStream.id).update({
-        status: currentStatus,
-      });
-    }
+    await checkAndUpdateStreamStatusIfNotLive(liveStreams.docs[i].id);
   }
 });
+
+async function checkAndUpdateStreamStatusIfNotLive(videoId) {
+  const url = urlFromId(videoId);
+  const currentStatus = await streamStatus(url);
+  if (currentStatus != STATUS_LIVE) {
+    // Stream is not live anymore
+    functions.logger.info("Stream is not live anymore: " + url + " : " + currentStatus );
+    await collection.doc(videoId).update({
+      status: currentStatus,
+    });
+  }
+  return currentStatus;
+}
 
 // Gets current live bad videos
 exports.getBad = functions.https.onRequest(async (request, response) => {
@@ -106,7 +115,7 @@ exports.onCreate = functions.runWith(LARGER_RUN_WITH).firestore
       await checkStream(videoId, snapshot.data().scanned || 0);
     });
 
-exports.onUpdate = functions.runWith(LARGER_RUN_WITH).firestore
+exports.onUpdateCheckIfWeShouldCheckStream = functions.runWith(LARGER_RUN_WITH).firestore
     .document("suspectStreams/{videoId}")
     .onUpdate(async (change, context) => {
       const videoId = context.params.videoId;
@@ -115,18 +124,24 @@ exports.onUpdate = functions.runWith(LARGER_RUN_WITH).firestore
       // If live, and not already bad, and not already checked in the last 3 hours
       if (
         newValue.status == STATUS_LIVE && // If live
-        !newValue.badDetected && // And not already marked as bad
-        ( !newValue.lastScanned || (new Date) - newValue.lastScanned > scanFrequencyHours * ONE_HOUR ) // And not already scanned in the last 3 hours
+        newValue.badDetected == undefined && // And not already marked as bad
+        newValue.scanned <= 20 && // And not already scanned over 20 times...
+        ( newValue.lastScanned == undefined || (new Date) - newValue.lastScanned > scanFrequencyHours * ONE_HOUR ) // And not already scanned in the last 3 hours
       ) {
-        const previousScanCount = newValue.scanned || 0;
-        functions.logger.info("Video seen again, and scanned " + previousScanCount + " times, scanning again: " + videoId, {videoId: videoId, previousScanCount: previousScanCount});
-        await checkStream(videoId, previousScanCount);
+        functions.logger.info("Scanning video on update: " + videoId, {newValue: newValue});
+        await checkStream(videoId, newValue.scanned || 0);
       }
+    });
 
+exports.onUpdateCheckIfWeCanDelete = functions.firestore
+    .document("suspectStreams/{videoId}")
+    .onUpdate(async (change, context) => {
+      const videoId = context.params.videoId;
+      const newValue = change.after.data();
       // If not live, and not bad, we can delete it
       if (
         newValue.status != STATUS_LIVE && // If not live
-        !newValue.badDetected// And not marked as bad
+        newValue.badDetected == undefined // And not marked as bad
       ) {
         functions.logger.info("Video not live, and not marked as bad, cleaning up: " + videoId, {videoId: videoId});
         await change.after.ref.delete();
@@ -145,19 +160,15 @@ async function streamStatus(url) {
   try {
     const ytInfo = await ytdl.getBasicInfo(url);
     if ( ytInfo.videoDetails.isLiveContent == false ) {
+      return STATUS_NOTLIVE;
+    }
+    if (ytInfo.videoDetails.liveBroadcastDetails.isLiveNow == false) {
       return STATUS_ENDED;
     }
+    return STATUS_LIVE;
   } catch (e) {
-    switch (e.message) {
-      case "Video unavailable":
-      case "This video has been removed for violating YouTube's Terms of Service":
-      case "Status code: 410":
-        return e.message;
-      default:
-        throw e;
-    }
+    return e.message;
   }
-  return STATUS_LIVE;
 }
 
 async function generateFromSearch(searchString) {
@@ -222,7 +233,11 @@ async function generateFromSearch(searchString) {
 }
 
 async function checkStream(videoId, previousScans) {
-  // functions.logger.debug(videoId, {videoId: videoId, previousScans: previousScans});
+  if (await checkAndUpdateStreamStatusIfNotLive(videoId) != STATUS_LIVE) {
+    functions.logger.info("Video not live, not checking: " + videoId, {videoId: videoId});
+    return;
+  }
+
   let checkTime = new Date();
   checkTime = checkTime.toISOString();
 
@@ -230,17 +245,18 @@ async function checkStream(videoId, previousScans) {
   const outputSnap = tmp.tmpNameSync() + ".jpg";
 
   // Check and Write Video (locally only)
+  functions.logger.info("Fetching video snippet: " + videoId, {videoId: videoId});
   let vidFetchFail = false;
-  const readableStream = ytdl("https://www.youtube.com/watch?v=" + videoId, {
+  const readableStream = ytdl(urlFromId(videoId), {
     begin: Date.now(),
   });
   readableStream.on("error", function(err) {
     vidFetchFail = "Video fetch failed at the readableStream stage: " + videoId + "\n" + err;
   });
   readableStream.pipe(fs.createWriteStream(outputVideo));
-  // Wait for file to exist on disk and be at least 1 MB (unles we failed)
-  while (vidFetchFail || !fs.existsSync(outputVideo) || fs.statSync(outputVideo).size < 1000000) {
-    await sleep(100);
+  // Wait for file to exist on disk and be at least 0.5 MB (unless we failed)
+  while (vidFetchFail || !fs.existsSync(outputVideo) || fs.statSync(outputVideo).size < 500000) {
+    await sleep(50);
   }
   readableStream.destroy();
   // Oh noes, we failed
@@ -249,6 +265,7 @@ async function checkStream(videoId, previousScans) {
   }
 
   // Write Snapshot
+  functions.logger.info("Grabbing frame: " + videoId, {videoId: videoId});
   await extractFrame({
     input: outputVideo,
     output: outputSnap,
@@ -256,6 +273,7 @@ async function checkStream(videoId, previousScans) {
   });
 
   // Write text
+  functions.logger.info("Recognizing text: " + videoId, {videoId: videoId});
   const recognizeResult = await Tesseract.recognize(
       outputSnap,
       "eng",
@@ -335,6 +353,7 @@ async function checkStream(videoId, previousScans) {
     return foundBadStuff;
   }
 
+  functions.logger.info("Looking for bad stuff: " + videoId, {videoId: videoId});
   const foundStuff = await textIncludesBadStuff(extractedText);
   if (foundStuff.length > 0) {
     let report = "";
@@ -350,12 +369,15 @@ async function checkStream(videoId, previousScans) {
     });
     await bucketFile(videoId, "text.txt", checkTime).save(extractedText, {public: true});
 
+
+    functions.logger.info("Bad stuff found! " + videoId, {videoId: videoId, foundStuff: foundStuff});
     await collection.doc(videoId).update({
       badDetected: checkTime,
       lastScanned: new Date(),
       scanned: previousScans + 1,
     });
   } else {
+    functions.logger.info("No bad stuff... " + videoId, {videoId: videoId, extractedText: extractedText});
     await collection.doc(videoId).update({
       lastScanned: new Date(),
       scanned: previousScans + 1,
@@ -384,4 +406,8 @@ function bucketFileName(videoId, fileName, checkTime) {
     return videoId + "/" + checkTime + "_" + fileName;
   }
   return videoId + "/" + fileName;
+}
+
+function urlFromId(videoId) {
+  return "https://www.youtube.com/watch?v=" + videoId;
 }

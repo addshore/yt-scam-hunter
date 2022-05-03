@@ -32,7 +32,8 @@ exports.suspectStreamsMarkNonLive = suspectStreams.markNonLive;
 // ////////////////////////
 
 exports.suspectStreamsOnCreate = suspectStreams.onCreate;
-exports.suspectStreamsOnUpdate = suspectStreams.onUpdate;
+exports.suspectStreamsOnUpdateCheckIfWeShouldCheckStream = suspectStreams.onUpdateCheckIfWeShouldCheckStream;
+exports.suspectStreamsOnUpdateCheckIfWeCanDelete = suspectStreams.onUpdateCheckIfWeCanDelete;
 exports.suspectStreamsOnDelete = suspectStreams.onDelete;
 
 exports.cleanupStoredFilesCallable = suspectStreams.cleanupStoredFilesCallable;
