@@ -264,7 +264,11 @@ async function checkStream(videoId, previousScans) {
   // Write text
   functions.logger.debug("Checking (Recognizing text): " + videoId, {videoId: videoId});
   const textDetectResult = await visionClient.textDetection(outputSnap);
-  const extractedText = textDetectResult[0].fullTextAnnotation.text;
+  let extractedText = "";
+  // Only get text if we have a text result...
+  if (textDetectResult[0].fullTextAnnotation) {
+    extractedText = textDetectResult[0].fullTextAnnotation.text;
+  }
 
   /**
      * Looks for bad strings in the text of the video snapshot
