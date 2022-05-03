@@ -36,23 +36,32 @@ const STATUS_NOTLIVE = "not-live";
 // https://cloud.google.com/functions/pricing
 // 0.000002900*10*120*2 = 0.00696 per call (vision API would be 0.0015 per call)
 // TODO check what is actually better? does this end in 2 min?
-const LARGER_RUN_WITH = {
+const RUN_WITH_SMALL_AND_LONG = {
+  timeoutSeconds: 60 * 3,
+  memory: "128MB",
+};
+const RUN_WITH_WEB = {
+  timeoutSeconds: 15,
+  memory: "256MB",
+};
+const RUN_WITH_LARGER = {
   timeoutSeconds: 120,
   memory: "1GB",
 };
 
 // Run every 2 hours to avoid looking at too many videos
 // TODO a better solution would be look every 3 hours for videos that are still live? and at ALL new videos hourly?
-exports.generateSchedule = functions.pubsub.schedule(scanSchedule).onRun(async (context) => {
+exports.generateSchedule = functions.runWith(RUN_WITH_SMALL_AND_LONG).pubsub.schedule(scanSchedule).onRun(async (context) => {
   const result = await generateFromSearch(scanSearchString);
   functions.logger.info("Schedueled generateFromSearch ran", result);
 });
 
-exports.generateCallable = functions.https.onCall( async (data, context) => {
-  return await generateFromSearch(scanSearchString);
+exports.generateCallable = functions.runWith(RUN_WITH_SMALL_AND_LONG).https.onCall( async (data, context) => {
+  functions.logger.info("Generating with limit: " + data.limit);
+  return await generateFromSearch(scanSearchString, data.limit);
 });
 
-exports.markNonLive = functions.pubsub.schedule(cleanupSchedule).onRun(async (context) => {
+exports.markNonLive = functions.runWith(RUN_WITH_SMALL_AND_LONG).pubsub.schedule(cleanupSchedule).onRun(async (context) => {
   const now = new Date();
   const someHoursAgo = new Date(now.getTime() - (cleanupCheckHours * ONE_HOUR));
 
@@ -78,7 +87,7 @@ async function checkAndUpdateStreamStatusIfNotLive(videoId) {
 }
 
 // Gets current live bad videos
-exports.getBad = functions.https.onRequest(async (request, response) => {
+exports.getBad = functions.runWith(RUN_WITH_WEB).https.onRequest(async (request, response) => {
   const badStreams = await collection.where("status", "==", STATUS_LIVE).where("badDetected", "!=", null).get();
   const badStreamsData = {};
   for (let i = 0; i < badStreams.size; i++) {
@@ -102,12 +111,12 @@ exports.getBad = functions.https.onRequest(async (request, response) => {
   response.send(badStreamsData);
 });
 
-exports.checkOneNowCallable = functions.runWith(LARGER_RUN_WITH).https.onCall( async (data, context) => {
+exports.checkOneNowCallable = functions.runWith(RUN_WITH_LARGER).https.onCall( async (data, context) => {
   const stream = await collection.doc(data.videoId).get();
   await checkStream(data.videoId, stream.data().scanned || 0);
 });
 
-exports.onCreate = functions.runWith(LARGER_RUN_WITH).firestore
+exports.onCreate = functions.runWith(RUN_WITH_LARGER).firestore
     .document("suspectStreams/{videoId}")
     .onCreate(async (snapshot, context) => {
       const videoId = context.params.videoId;
@@ -115,7 +124,7 @@ exports.onCreate = functions.runWith(LARGER_RUN_WITH).firestore
       await checkStream(videoId, snapshot.data().scanned || 0);
     });
 
-exports.onUpdateCheckIfWeShouldCheckStream = functions.runWith(LARGER_RUN_WITH).firestore
+exports.onUpdateCheckIfWeShouldCheckStream = functions.runWith(RUN_WITH_LARGER).firestore
     .document("suspectStreams/{videoId}")
     .onUpdate(async (change, context) => {
       const videoId = context.params.videoId;
@@ -171,7 +180,7 @@ async function streamStatus(url) {
   }
 }
 
-async function generateFromSearch(searchString) {
+async function generateFromSearch(searchString, limit = 250) {
   const filters1 = await ytsr.getFilters(searchString);
   const filter1 = filters1.get("Type").get("Video");
   const filters2 = await ytsr.getFilters(filter1.url);
@@ -190,12 +199,15 @@ async function generateFromSearch(searchString) {
   }
 
   // Iterate through results, just returning the URLs
-  const videoData = results.map(function(video) {
+  let videoData = results.map(function(video) {
     return {
       url: video.url,
       video: video,
     };
   });
+
+  // Slice per the limit
+  videoData = videoData.slice(0, limit);
 
   let created = 0;
   let updated = 0;
@@ -274,16 +286,32 @@ async function checkStream(videoId, previousScans) {
 
   // Write text
   functions.logger.info("Recognizing text: " + videoId, {videoId: videoId});
-  const recognizeResult = await Tesseract.recognize(
-      outputSnap,
-      "eng",
-  );
-  const extractedText = recognizeResult.data.text;
+
+  // Move training data into a writable place
+  // https://github.com/naptha/tesseract.js/issues/481#issuecomment-705223523
+  fs.copyFile("./eng.traineddata", "/tmp/eng.traineddata", (err) => {
+    if (err) throw err;
+  });
+
+  const tessWorker = Tesseract.createWorker({
+    errorHandler: function(err) {
+      throw err;
+    },
+    langPath: "/tmp",
+    cacheMethod: "none",
+    gzip: false,
+  });
+  await tessWorker.load();
+  await tessWorker.loadLanguage("eng");
+  await tessWorker.initialize("eng");
+  const {data: {text}} = await tessWorker.recognize(outputSnap);
+  await tessWorker.terminate();
+  const extractedText = text;
 
   /**
      * Looks for bad strings in the text of the video snapshot
      */
-  async function textIncludesBadStuff(text) {
+  const badStuffCheckFunc = function textIncludesBadStuff(text) {
     text = text.toLowerCase();
     const foundBadStuff = [];
 
@@ -351,10 +379,10 @@ async function checkStream(videoId, previousScans) {
     }
 
     return foundBadStuff;
-  }
+  };
 
   functions.logger.info("Looking for bad stuff: " + videoId, {videoId: videoId});
-  const foundStuff = await textIncludesBadStuff(extractedText);
+  const foundStuff = badStuffCheckFunc(extractedText);
   if (foundStuff.length > 0) {
     let report = "";
     for (let j = 0; j < foundStuff.length; j++) {
@@ -368,7 +396,6 @@ async function checkStream(videoId, previousScans) {
       public: true,
     });
     await bucketFile(videoId, "text.txt", checkTime).save(extractedText, {public: true});
-
 
     functions.logger.info("Bad stuff found! " + videoId, {videoId: videoId, foundStuff: foundStuff});
     await collection.doc(videoId).update({
