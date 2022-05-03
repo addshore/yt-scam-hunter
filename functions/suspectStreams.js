@@ -2,25 +2,21 @@ const functions = require("firebase-functions");
 const {getFirestore} = require("firebase-admin/firestore");
 const tmp = require("tmp");
 const {Storage} = require("@google-cloud/storage");
-const vision = require("@google-cloud/vision");
 const ytdl = require("ytdl-core");
 const fs = require("fs");
 const extractFrame = require("ffmpeg-extract-frame");
+const Tesseract = require("tesseract.js");
 const sleep = require("util").promisify(setTimeout);
 const ytsr = require("ytsr");
 
 const db = getFirestore();
 const collection = db.collection("suspectStreams");
 const storage = new Storage();
-const visionClient = new vision.ImageAnnotatorClient({
-  projectId: "scam-hunter",
-  keyFilename: "./sa-scam-hunter.json",
-});
 
 // //////////////////
 // Configuration
 // //////////////////
-const bucketName = "scam-hunter.appspot.com";
+const bucketName = "scamhunter.appspot.com";
 // How often to search for new streams
 const scanSchedule = "every 2 hours";
 // How often to scan a video if it keeps appearing
@@ -37,7 +33,7 @@ const ONE_HOUR = 60 * 60 * 1000;
 const STATUS_LIVE = "live";
 const STATUS_ENDED = "ended";
 const LARGER_RUN_WITH = {
-  timeoutSeconds: 60,
+  timeoutSeconds: 90,
   memory: "512MB",
 };
 
@@ -94,7 +90,7 @@ exports.getBad = functions.https.onRequest(async (request, response) => {
   }
   // Cache on clients for 5 mins, in CDN for 10 mins
   response.set("Cache-Control", "public, max-age=300, s-maxage=600");
-  response.status(200).send(badStreamsData);
+  response.send(badStreamsData);
 });
 
 exports.checkOneNowCallable = functions.runWith(LARGER_RUN_WITH).https.onCall( async (data, context) => {
@@ -226,7 +222,7 @@ async function generateFromSearch(searchString) {
 }
 
 async function checkStream(videoId, previousScans) {
-  functions.logger.debug("Checking: " + videoId, {videoId: videoId});
+  // functions.logger.debug(videoId, {videoId: videoId, previousScans: previousScans});
   let checkTime = new Date();
   checkTime = checkTime.toISOString();
 
@@ -234,7 +230,6 @@ async function checkStream(videoId, previousScans) {
   const outputSnap = tmp.tmpNameSync() + ".jpg";
 
   // Check and Write Video (locally only)
-  functions.logger.debug("Checking (Fetching video): " + videoId, {videoId: videoId});
   let vidFetchFail = false;
   const readableStream = ytdl("https://www.youtube.com/watch?v=" + videoId, {
     begin: Date.now(),
@@ -254,7 +249,6 @@ async function checkStream(videoId, previousScans) {
   }
 
   // Write Snapshot
-  functions.logger.debug("Checking (Grabing frame): " + videoId, {videoId: videoId});
   await extractFrame({
     input: outputVideo,
     output: outputSnap,
@@ -262,14 +256,15 @@ async function checkStream(videoId, previousScans) {
   });
 
   // Write text
-  functions.logger.debug("Checking (Recognizing text): " + videoId, {videoId: videoId});
-  const textDetectResult = await visionClient.textDetection(outputSnap);
-  const extractedText = textDetectResult[0].fullTextAnnotation.text;
+  const recognizeResult = await Tesseract.recognize(
+      outputSnap,
+      "eng",
+  );
+  const extractedText = recognizeResult.data.text;
 
   /**
      * Looks for bad strings in the text of the video snapshot
      */
-  functions.logger.debug("Checking (Detecting badness): " + videoId, {videoId: videoId});
   async function textIncludesBadStuff(text) {
     text = text.toLowerCase();
     const foundBadStuff = [];
@@ -341,7 +336,6 @@ async function checkStream(videoId, previousScans) {
   }
 
   const foundStuff = await textIncludesBadStuff(extractedText);
-  functions.logger.debug("Checking (Updating state): " + videoId, {videoId: videoId, foundStuff: foundStuff});
   if (foundStuff.length > 0) {
     let report = "";
     for (let j = 0; j < foundStuff.length; j++) {

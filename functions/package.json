@@ -7,7 +7,7 @@
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
-    "deploy": "firebase deploy --only functions",
+    "deploy": "node ./build/fetchTesseract.js && firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
   "engines": {
@@ -16,10 +16,10 @@
   "main": "index.js",
   "dependencies": {
     "@google-cloud/storage": "^5.19.4",
-    "@google-cloud/vision": "^2.4.2",
     "ffmpeg-extract-frame": "^1.0.2",
     "firebase-admin": "^10.0.2",
     "firebase-functions": "^3.18.0",
+    "tesseract.js": "^2.1.5",
     "tmp": "^0.2.1",
     "ytdl-core": "^4.11.0",
     "ytsr": "^3.8.0"
