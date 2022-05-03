@@ -7,7 +7,7 @@ const suspectStreams = require("./suspectStreams");
 // HTTP Cloud Function
 // ////////////////////////
 
-exports.suspectStreamsGetBad = suspectStreams.getBad;
+exports.currentBadStreams = suspectStreams.getBad;
 
 // ////////////////////////
 // Callable Cloud Function
