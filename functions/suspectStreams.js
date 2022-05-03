@@ -46,7 +46,7 @@ const RUN_WITH_WEB = {
 };
 const RUN_WITH_LARGER = {
   timeoutSeconds: 120,
-  memory: "1GB",
+  memory: "2GB",
 };
 
 // Run every 2 hours to avoid looking at too many videos
