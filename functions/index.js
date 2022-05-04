@@ -1,39 +1,44 @@
 const {initializeApp} = require("firebase-admin/app");
 initializeApp();
 
-const suspectStreams = require("./suspectStreams");
+const http = require("./http");
+const searchMessagePublisher = require("./searchMessagePublisher");
+const searchMessageSubscription = require("./searchMessageSubscription");
+const streamSeenMessageSubscription = require("./streamSeenMessageSubscription");
+const cleanup = require("./cleanup");
 
 // ////////////////////////
 // HTTP Cloud Function
 // ////////////////////////
 
-exports.currentBadStreams = suspectStreams.getBad;
+exports.currentBadStreams = http.getCurrentBad;
 
 // ////////////////////////
 // Callable Cloud Function
 // ////////////////////////
 
-// Testable from within the `firebase functions:shell`
-// suspectStreamsGenerateCallable({})
-exports.suspectStreamsGenerateCallable = suspectStreams.generateCallable;
-// Checks an existing videoId to see if it is bad
-// suspectStreamsCheckOneNowCallable({videoId: "someVideoId"})
-exports.suspectStreamsCheckOneNowCallable = suspectStreams.checkOneNowCallable;
+exports.callSearchMessagePublisher = searchMessagePublisher.onCall;
+exports.callSearchMessageSubscription = searchMessageSubscription.onCall;
+exports.callStreamSeenMessageSubscription = streamSeenMessageSubscription.onCall;
+exports.callCleanup = cleanup.onCall;
 
 // ////////////////////////
 // Scheduled Cloud Function
 // ////////////////////////
 
-exports.suspectStreamsGenerateSchedule = suspectStreams.generateSchedule;
-exports.suspectStreamsMarkNonLive = suspectStreams.markNonLive;
+exports.scheduleSearchMessagePublisher = searchMessagePublisher.onSchedule;
+exports.scheduleCleanup = cleanup.onSchedule;
+
+// ////////////////////////
+// PubSub subscriptions
+// ////////////////////////
+
+exports.onSearchMessagePublish = searchMessageSubscription.onPublish;
+exports.onStreamSeenMessagePublish = streamSeenMessageSubscription.onPublish;
 
 // ////////////////////////
 // Event Cloud Function
 // ////////////////////////
 
-exports.suspectStreamsOnCreate = suspectStreams.onCreate;
-exports.suspectStreamsOnUpdateCheckIfWeShouldCheckStream = suspectStreams.onUpdateCheckIfWeShouldCheckStream;
-exports.suspectStreamsOnUpdateCheckIfWeCanDelete = suspectStreams.onUpdateCheckIfWeCanDelete;
-exports.suspectStreamsOnDelete = suspectStreams.onDelete;
-
-exports.cleanupStoredFilesCallable = suspectStreams.cleanupStoredFilesCallable;
+exports.suspectStreamsOnUpdateCheckIfWeCanDelete = cleanup.onUpdateCheckIfWeCanDelete;
+exports.suspectStreamsOnDelete = cleanup.onDeleteAlsoRemoveArtifacts;

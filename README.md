@@ -2,15 +2,35 @@
 
 A little project to hunt for crypto scams on YouTube inspired from some [shouting into the void at YouTube](https://twitter.com/addshore/status/1520154767036751873).
 
-If it's this easy to save their users what is most likley millions of USD a month from being scammed, they should really do something...
+Currently exposed as a single API endpoint: https://us-central1-scam-hunter.cloudfunctions.net/currentBadStreams
 
-Hunting works by:
+Which outputs data something like this:
+
+```json
+{
+    "CAVbmHnoGVQ": {
+        "url": "https://www.youtube.com/watch?v=CAVbmHnoGVQ",
+        "times": {
+            "firstSeen": "2022-05-04T18:43:23.271Z",
+            "badDetected": "2022-05-04T18:43:27.035Z"
+        },
+        "files": {
+            "details": "https://storage.googleapis.com/scam-hunter.appspot.com/CAVbmHnoGVQ%2Fvideo.json",
+            "snapshot": "https://storage.googleapis.com/scam-hunter.appspot.com/CAVbmHnoGVQ%2F2022-05-04T18%3A43%3A27.035Z_snapshot.jpg",
+            "text": "https://storage.googleapis.com/scam-hunter.appspot.com/CAVbmHnoGVQ%2F2022-05-04T18%3A43%3A27.035Z_text.txt",
+            "report": "https://storage.googleapis.com/scam-hunter.appspot.com/CAVbmHnoGVQ%2F2022-05-04T18%3A43%3A27.035Z_report.txt"
+        }
+    }
+}
+```
+
+## Method
 
 1) Perfoming a YouTube search for live streams, currently looking for `"eth" OR "btc"`
-2) Downloading a few seconds of live video from the stream
+2) Downloading half a second of live video from the stream
 3) Convert the first frame of that video to an image
 4) Extracting text from that image using OCR
-5) Checking the text against a [bad word domains & regex](./bad.db.yml) 
+5) Checking the text against a some known bad domains, and regular expressions
 
 In the future it would be nice to:
 
@@ -22,15 +42,22 @@ In the future it would be nice to:
 - Twitter bot to get the word out?
 - Convince YouTube to do a better job?
 
-There are currently a set of "manual" scripts in this repository that act as a proof of concept for detection.
+## Development
+
+The project is currently developed using Firebase.
+
+You can find the functions in [./functions]()
+
+![./docs/overview.drawio.svg]()
+
+# Legacy proof of concept
+
+There are currently still a set of "manual" scripts in this repository that act as a proof of concept for detection.
 
  - `ytlive.js`: YouTube live video scam detection
  - `report.js`: Automatically report videos that have been collected
  - `domains.js`: Extract more domains to look for, from video texts
  - `wallets.js`: Extract wallets from domains that appear to be scamming
-
- Everything is currently being ported to a firebase app with APIs etc.
- More to come on that as it is developed...
 
 ## Setup
 
