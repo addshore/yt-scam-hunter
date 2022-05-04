@@ -356,6 +356,7 @@ async function checkStream(videoId, previousScans) {
       "2xelon.net",
       "2xeth.info",
       "crttesla.com",
+      "2xark.com",
     ];
     for (let i = 0; i < badDomains.length; i++) {
       const badDomain = badDomains[i].toLowerCase();
