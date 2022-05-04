@@ -48,7 +48,7 @@ The project is currently developed using Firebase.
 
 You can find the functions in [./functions]()
 
-![./docs/overview.drawio.svg]()
+![](./docs/overview.drawio.svg)
 
 # Legacy proof of concept
 
