@@ -1,6 +1,6 @@
 # yt-scam-hunter
 
-A little app to hunt for crypto scams on YouTube inspired from some [shouting into the void at YouTube](https://twitter.com/addshore/status/1520154767036751873).
+A little project to hunt for crypto scams on YouTube inspired from some [shouting into the void at YouTube](https://twitter.com/addshore/status/1520154767036751873).
 
 If it's this easy to save their users what is most likley millions of USD a month from being scammed, they should really do something...
 
@@ -19,7 +19,18 @@ In the future it would be nice to:
 - QR code detection? [example](https://i.imgur.com/1jubd7R.png)
 - Check live chat messages for text too
 - Check description text too?
+- Twitter bot to get the word out?
 - Convince YouTube to do a better job?
+
+There are currently a set of "manual" scripts in this repository that act as a proof of concept for detection.
+
+ - `ytlive.js`: YouTube live video scam detection
+ - `report.js`: Automatically report videos that have been collected
+ - `domains.js`: Extract more domains to look for, from video texts
+ - `wallets.js`: Extract wallets from domains that appear to be scamming
+
+ Everything is currently being ported to a firebase app with APIs etc.
+ More to come on that as it is developed...
 
 ## Setup
 
