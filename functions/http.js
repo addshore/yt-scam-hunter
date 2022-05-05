@@ -10,16 +10,30 @@ const RUN_WITH = {
   memory: "256MB",
 };
 
-exports.getCurrentBad = functions.runWith(RUN_WITH).https.onRequest(async (request, response) => {
+exports.getCurrentBad = functions.runWith(RUN_WITH).https.onRequest( async (request, response) => {
+  getCurrentBad(function(data) {
+  // Cache on clients for 5 mins, in CDN for 10 mins
+    response.set("Cache-Control", "public, max-age=300, s-maxage=600");
+    response.send(data);
+  });
+});
+exports.callCurrentBad = functions.runWith(RUN_WITH).https.onCall( async (data, context) => {
+  getCurrentBad(function(data) {
+    functions.logger.info("Current bad streams", {data: data});
+  });
+});
+
+async function getCurrentBad(callback) {
   const badStreams = await collection.where("status", "==", youtube.STATUS_LIVE).where("badDetected", "!=", null).get();
   const badStreamsData = {};
   for (let i = 0; i < badStreams.size; i++) {
     const data = badStreams.docs[i].data();
+
     badStreamsData[data.id] = {
       url: data.url,
       times: {
         firstSeen: data.firstSeen.toDate().toISOString(),
-        badDetected: data.badDetected,
+        badDetected: data.badDetected.toDate().toISOString(),
       },
       files: {
         details: storage.videoFile(data.id, "video.json").publicUrl(),
@@ -29,7 +43,5 @@ exports.getCurrentBad = functions.runWith(RUN_WITH).https.onRequest(async (reque
       },
     };
   }
-  // Cache on clients for 5 mins, in CDN for 10 mins
-  response.set("Cache-Control", "public, max-age=300, s-maxage=600");
-  response.send(badStreamsData);
-});
+  callback(JSON.stringify(badStreamsData, null, 4));
+}

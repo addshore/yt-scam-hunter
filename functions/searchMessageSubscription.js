@@ -6,9 +6,9 @@ const searchRequestTopic = "search-request";
 const streamSeenTopic = "stream-seen";
 
 const RUN_WITH = {
-  // Searches can take some time, so 30 seconds?
-  timeoutSeconds: 30,
-  memory: "256MB",
+  // Searches can take some time, so 15 seconds?
+  timeoutSeconds: 15,
+  memory: "512MB",
 };
 
 exports.onPublish = functions
@@ -53,7 +53,7 @@ async function searchAndPublishVideoSeenMessages(searchString = "\"eth\" OR \"bt
 
   for (let i = 0; i < results.length; i++) {
     const video = results[i];
-    pubsub.messageWithCreate(streamSeenTopic, {
+    await pubsub.messageWithCreate(streamSeenTopic, {
       id: video.id,
       url: video.url,
     });

@@ -13,7 +13,7 @@ function videoFile(videoId, fileName, checkTime) {
 
 function videoFileName(videoId, fileName, checkTime) {
   if (checkTime != null) {
-    return videoId + "/" + checkTime + "_" + fileName;
+    return videoId + "/" + checkTime.toDate().toISOString() + "_" + fileName;
   }
   return videoId + "/" + fileName;
 }

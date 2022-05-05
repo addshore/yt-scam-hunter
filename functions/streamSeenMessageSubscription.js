@@ -15,7 +15,7 @@ const streamSeenTopic = "stream-seen";
 // This does lots of processing (video download, frame extraction, and OCR)
 const RUN_WITH = {
   timeoutSeconds: 60,
-  memory: "1GB",
+  memory: "2GB",
 };
 
 exports.onPublish = functions
@@ -34,7 +34,7 @@ exports.onCall = functions
 
 async function checkStream(videoId) {
   const url = youtube.urlFromId(videoId);
-  const checkStartTime = (new Date()).toISOString();
+  const checkStartTime = new Date();
 
   const {info, status: currentStatus} = await youtube.basicInfoAndStatus(url);
   const storedDoc = await collection.doc(videoId).get();
@@ -130,7 +130,7 @@ async function checkStream(videoId) {
 
   // We found bad stuff! Write artifacts & document
   functions.logger.info("Bad stuff found! " + videoId, {videoId: videoId, badThings: badThings});
-  await storage.writeVideoArtifacts(videoId, checkStartTime, info, outputVideo, outputSnap, extractedText, badThings.join("\n"));
+  await storage.writeVideoArtifacts(videoId, checkStartTime, info, badThings.join("\n"), outputSnap, extractedText);
   if (storedDoc.exists) {
     await collection.doc(videoId).update({
       lastSeen: checkStartTime,

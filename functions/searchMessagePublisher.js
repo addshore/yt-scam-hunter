@@ -11,7 +11,7 @@ const RUN_WITH = {
 
 exports.onSchedule = functions
     .runWith(RUN_WITH)
-    .pubsub.schedule(process.env.SEARCH_SCHEDULE)
+    .pubsub.schedule("every 1 hours") // TODO make this come from an env var
     .onRun(async () => {
       publishMessage();
     });
