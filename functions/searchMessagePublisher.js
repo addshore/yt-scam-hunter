@@ -1,7 +1,7 @@
 const functions = require("firebase-functions");
 const pubsub = require("./src/pubsub");
 
-const searchRequestTopic = "search-request";
+const TOPIC_SEARCH_REQUEST = "search-request";
 
 const RUN_WITH = {
   // Should just be emiting a message, so 5 seconds
@@ -24,5 +24,5 @@ exports.onCall = functions
     });
 
 async function publishMessage() {
-  await pubsub.messageWithCreate(searchRequestTopic, {});
+  await pubsub.messageWithCreate(TOPIC_SEARCH_REQUEST, {});
 }

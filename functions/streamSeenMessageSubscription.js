@@ -4,13 +4,15 @@ const extractFrame = require("ffmpeg-extract-frame");
 const youtube = require("./src/youtube");
 const tesseract = require("./src/tesseract");
 const storage = require("./src/storage");
+const pubsub = require("./src/pubsub");
 const tmp = require("tmp");
 
 const db = getFirestore();
 const collection = db.collection("suspectStreams");
 const ONE_HOUR = 60 * 60 * 1000;
 
-const streamSeenTopic = "stream-seen";
+const TOPIC_STREAM_SEEN = "stream-seen";
+const TOPIC_BAD_STREAM = "bad-stream";
 
 // This does lots of processing (video download, frame extraction, and OCR)
 const RUN_WITH = {
@@ -20,7 +22,7 @@ const RUN_WITH = {
 
 exports.onPublish = functions
     .runWith(RUN_WITH)
-    .pubsub.topic(streamSeenTopic)
+    .pubsub.topic(TOPIC_STREAM_SEEN)
     .onPublish(async (message, context) => {
       await checkStream(message.json.id);
     });
@@ -150,6 +152,9 @@ async function checkStream(videoId) {
       status: currentStatus,
     });
   }
+
+  // Send a message to the bad-stream topic
+  await pubsub.messageWithCreate(TOPIC_BAD_STREAM, {id: videoId, url: url});
 }
 
 /**

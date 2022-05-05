@@ -2,8 +2,8 @@ const functions = require("firebase-functions");
 const pubsub = require("./src/pubsub");
 const ytsr = require("ytsr");
 
-const searchRequestTopic = "search-request";
-const streamSeenTopic = "stream-seen";
+const TOPIC_SEARCH_REQUEST = "search-request";
+const TOPIC_STREAM_SEEN = "stream-seen";
 
 const RUN_WITH = {
   // Searches can take some time, so 15 seconds?
@@ -13,7 +13,7 @@ const RUN_WITH = {
 
 exports.onPublish = functions
     .runWith(RUN_WITH)
-    .pubsub.topic(searchRequestTopic)
+    .pubsub.topic(TOPIC_SEARCH_REQUEST)
     .onPublish(async () => {
       await searchAndPublishVideoSeenMessages();
     });
@@ -53,7 +53,7 @@ async function searchAndPublishVideoSeenMessages(searchString = "\"eth\" OR \"bt
 
   for (let i = 0; i < results.length; i++) {
     const video = results[i];
-    await pubsub.messageWithCreate(streamSeenTopic, {
+    await pubsub.messageWithCreate(TOPIC_STREAM_SEEN, {
       id: video.id,
       url: video.url,
     });
