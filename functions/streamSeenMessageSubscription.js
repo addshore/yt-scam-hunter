@@ -43,7 +43,7 @@ async function checkStream(videoId) {
   if ( currentStatus != youtube.STATUS_LIVE ) {
     functions.logger.info("Video not live: " + videoId, {videoId: videoId, currentStatus: currentStatus});
     if (storedDoc.exists) {
-      await collection.doc(videoId).update({status: currentStatus});
+      await collection.doc(videoId).update({status: currentStatus, notLiveSince: checkStartTime});
     }
     return;
   }

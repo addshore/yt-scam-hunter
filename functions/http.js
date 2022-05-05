@@ -12,7 +12,7 @@ const RUN_WITH = {
 
 exports.getCurrentBad = functions.runWith(RUN_WITH).https.onRequest( async (request, response) => {
   getCurrentBad(function(data) {
-  // Cache on clients for 5 mins, in CDN for 10 mins
+    // Cache on clients for 5 mins, in CDN for 10 mins
     response.set("Cache-Control", "public, max-age=300, s-maxage=600");
     response.send(data);
   });
@@ -30,18 +30,21 @@ async function getCurrentBad(callback) {
     const data = badStreams.docs[i].data();
 
     badStreamsData[data.id] = {
+      id: data.id,
       url: data.url,
       times: {
         firstSeen: data.firstSeen.toDate().toISOString(),
         badDetected: data.badDetected.toDate().toISOString(),
+        // notLiveSince was only added for entries since 06/05/2022 ish
+        notLiveSince: data.notLiveSince ? data.notLiveSince.toDate().toISOString() : undefined,
       },
       files: {
         details: storage.videoFile(data.id, "video.json").publicUrl(),
-        snapshot: storage.videoFile(data.id, "snapshot.jpg", data.badDetected).publicUrl(),
-        text: storage.videoFile(data.id, "text.txt", data.badDetected).publicUrl(),
-        report: storage.videoFile(data.id, "report.txt", data.badDetected).publicUrl(),
+        snapshot: storage.videoFile(data.id, "snapshot.jpg", data.badDetected.toDate()).publicUrl(),
+        text: storage.videoFile(data.id, "text.txt", data.badDetected.toDate()).publicUrl(),
+        report: storage.videoFile(data.id, "report.txt", data.badDetected.toDate()).publicUrl(),
       },
     };
   }
-  callback(JSON.stringify(badStreamsData, null, 4));
+  callback(badStreamsData);
 }

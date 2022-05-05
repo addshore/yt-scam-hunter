@@ -7,13 +7,25 @@ const bucket = storage.bucket(bucketName);
 exports.storage = storage;
 exports.bucketName = bucketName;
 
+/**
+ * @param {string} videoId
+ * @param {string} fileName
+ * @param {Date} checkTime
+ * @returns File
+ */
 function videoFile(videoId, fileName, checkTime) {
   return storage.bucket(bucketName).file(videoFileName(videoId, fileName, checkTime));
 }
 
+/**
+ * @param {string} videoId
+ * @param {string} fileName
+ * @param {Date} checkTime
+ * @returns string
+ */
 function videoFileName(videoId, fileName, checkTime) {
   if (checkTime != null) {
-    return videoId + "/" + checkTime.toDate().toISOString() + "_" + fileName;
+    return videoId + "/" + checkTime.toISOString() + "_" + fileName;
   }
   return videoId + "/" + fileName;
 }

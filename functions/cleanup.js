@@ -51,6 +51,7 @@ async function checkAndUpdateStreamStatusIfNotLive(videoId) {
     functions.logger.info("Stream is not live anymore: " + url + " : " + currentStatus);
     await collection.doc(videoId).update({
       status: currentStatus,
+      notLiveSince: new Date(),
     });
   }
   return currentStatus;
@@ -64,7 +65,7 @@ exports.onUpdateCheckIfWeCanDelete = functions.firestore
       // If not live, and not bad, we can delete it
       if (
         newValue.status != youtube.STATUS_LIVE && // If not live
-      newValue.badDetected == undefined // And not marked as bad
+        newValue.badDetected == undefined // And not marked as bad
       ) {
         functions.logger.info("Video not live, and not marked as bad, cleaning up: " + videoId, {videoId: videoId});
         await change.after.ref.delete();
