@@ -2,3 +2,4 @@ node_modules/
 eng.traineddata
 *.log
 sa-scam-hunter.json
+.env

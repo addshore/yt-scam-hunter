@@ -34,8 +34,8 @@ Which outputs data something like this:
 
 In the future it would be nice to:
 
-- Validate that collected wallet addresses are real? (Remove if not)
 - Also report those wallet addresses to somewhere?
+- Update the ammount of coin in the wallets daily?
 - QR code detection? [example](https://i.imgur.com/1jubd7R.png)
 - Check live chat messages for text too
 - Check description text too?

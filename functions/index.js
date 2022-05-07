@@ -4,6 +4,7 @@ initializeApp();
 
 const http = require("./http");
 const badStreamMessageSubscription = require("./badStreamMessageSubscription");
+const badDomainMessageSubscription = require("./badDomainMessageSubscription");
 const searchMessagePublisher = require("./searchMessagePublisher");
 const searchMessageSubscription = require("./searchMessageSubscription");
 const streamSeenMessageSubscription = require("./streamSeenMessageSubscription");
@@ -26,6 +27,7 @@ exports.callStreamSeenMessageSubscription = streamSeenMessageSubscription.onCall
 exports.callCleanup = cleanup.onCall;
 exports.callCleanupSingle = cleanup.onCallSingle;
 exports.callBadStreamMessagePublish = badStreamMessageSubscription.onCall
+exports.callBadDomainMessagePublish = badDomainMessageSubscription.onCall
 
 // ////////////////////////
 // Scheduled Cloud Function
@@ -41,6 +43,7 @@ exports.scheduleCleanup = cleanup.onSchedule;
 exports.onSearchMessagePublish = searchMessageSubscription.onPublish;
 exports.onStreamSeenMessagePublish = streamSeenMessageSubscription.onPublish;
 exports.onBadStreamMessagePublish = badStreamMessageSubscription.onPublish
+exports.onBadDomainMessagePublish = badDomainMessageSubscription.onPublish
 
 // ////////////////////////
 // Event Cloud Function

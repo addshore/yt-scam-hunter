@@ -68,7 +68,7 @@ async function processText(videoId) {
         }
     }
 
-    functions.logger.info("Detected " + liveDomains.length + " new live domains");
+    functions.logger.info("Detected " + liveDomains.length + " live domains");
     if(liveDomains.length == 0) {
         return
     }
@@ -81,13 +81,14 @@ async function processText(videoId) {
 
     // Record the domains
     let domainsDoc = collectionOfDomains.doc("all");
-    if (! (await domainsDoc.get().exists )) {
+    if (! (await domainsDoc.get() ).exists ) {
+        functions.logger.info("Creating new domains doc");
         await domainsDoc.set({
-            doamins: liveDomains,
+            domains: liveDomains
         })
     } else {
         await domainsDoc.update({
-            domains: FieldValue.arrayUnion(liveDomains)
+            domains: FieldValue.arrayUnion(...liveDomains)
         })
     }
 
