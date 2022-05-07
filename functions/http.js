@@ -52,6 +52,8 @@ async function getCurrentBadStreams(callback) {
         "text-vision": ( await storage.fileExistsAtPath(storage.videoFileName(data.id, "text-vision.txt", badDate))) ? storage.videoFile(data.id, "text-vision.txt", badDate).publicUrl() : undefined,
         "report": storage.videoFile(data.id, "report.txt", badDate).publicUrl(),
       },
+      domains: data.domains,
+      wallets: data.wallets,
     };
   }
   callback(badStreamsData);

@@ -8,24 +8,5 @@
   },
   "author": "Addshore",
   "dependencies": {
-    "@google-cloud/datastore": "^6.6.2",
-    "@google-cloud/functions-framework": "^3.1.1",
-    "chalk": "^4.1.2",
-    "columnify": "^1.6.0",
-    "ffmpeg-extract-frame": "^1.0.2",
-    "firebase": "^9.7.0",
-    "firebase-admin": "^10.1.0",
-    "google-auth-library": "^7.14.1",
-    "googleapis": "^100.0.0",
-    "node-fetch": "^2.6.7",
-    "node-tesseract-ocr": "^2.2.1",
-    "st.db": "^4.0.7",
-    "tlds": "^1.231.0",
-    "xmldom": "^0.6.0",
-    "xpath": "^0.0.32",
-    "yaml": "^2.0.1",
-    "youtube.com-extended": "^2.0.4",
-    "ytdl-core": "^4.11.0",
-    "ytsr": "^3.8.0"
   }
 }

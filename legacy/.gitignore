@@ -1,0 +1,4 @@
+node_modules
+.data/*
+google_client_secret.json
+.private.db.yml
