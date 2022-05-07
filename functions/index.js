@@ -14,13 +14,18 @@ const cleanup = require("./cleanup");
 // HTTP Cloud Function
 // ////////////////////////
 
-exports.currentBadStreams = http.getCurrentBad;
+exports.streams = http.getCurrentBadStreams;
+exports.domains = http.getDomains;
+exports.wallets = http.getWallets;
 
 // ////////////////////////
 // Callable Cloud Function
 // ////////////////////////
 
-exports.callCurrentBad = http.callCurrentBad;
+exports.callCurrentBadStreams = http.callCurrentBadStreams;
+exports.callGetDomains = http.callDomains;
+exports.callGetWallets = http.callWallets;
+
 exports.callSearchMessagePublisher = searchMessagePublisher.onCall;
 exports.callSearchMessageSubscription = searchMessageSubscription.onCall;
 exports.callStreamSeenMessageSubscription = streamSeenMessageSubscription.onCall;
