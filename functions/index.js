@@ -3,6 +3,7 @@ const {initializeApp} = require("firebase-admin/app");
 initializeApp();
 
 const http = require("./http");
+const badStreamMessageSubscription = require("./badStreamMessageSubscription");
 const searchMessagePublisher = require("./searchMessagePublisher");
 const searchMessageSubscription = require("./searchMessageSubscription");
 const streamSeenMessageSubscription = require("./streamSeenMessageSubscription");
@@ -23,6 +24,8 @@ exports.callSearchMessagePublisher = searchMessagePublisher.onCall;
 exports.callSearchMessageSubscription = searchMessageSubscription.onCall;
 exports.callStreamSeenMessageSubscription = streamSeenMessageSubscription.onCall;
 exports.callCleanup = cleanup.onCall;
+exports.callCleanupSingle = cleanup.onCallSingle;
+exports.callBadStreamMessagePublish = badStreamMessageSubscription.onCall
 
 // ////////////////////////
 // Scheduled Cloud Function
@@ -37,6 +40,7 @@ exports.scheduleCleanup = cleanup.onSchedule;
 
 exports.onSearchMessagePublish = searchMessageSubscription.onPublish;
 exports.onStreamSeenMessagePublish = streamSeenMessageSubscription.onPublish;
+exports.onBadStreamMessagePublish = badStreamMessageSubscription.onPublish
 
 // ////////////////////////
 // Event Cloud Function

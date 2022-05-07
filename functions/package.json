@@ -17,10 +17,13 @@
   "dependencies": {
     "@google-cloud/pubsub": "^2.19.3",
     "@google-cloud/storage": "^5.19.4",
+    "@google-cloud/vision": "^2.4.2",
     "ffmpeg-extract-frame": "^1.0.2",
     "firebase-admin": "^10.0.2",
     "firebase-functions": "^3.18.0",
+    "jimp": "^0.16.1",
     "tesseract.js": "^2.1.5",
+    "tlds": "^1.231.0",
     "tmp": "^0.2.1",
     "ytdl-core": "^4.11.0",
     "ytsr": "^3.8.0"
@@ -28,7 +31,8 @@
   "devDependencies": {
     "eslint": "^8.9.0",
     "eslint-config-google": "^0.14.0",
-    "firebase-functions-test": "^0.2.0"
+    "firebase-functions-test": "^0.2.3",
+    "mocha": "^10.0.0"
   },
   "private": true
 }

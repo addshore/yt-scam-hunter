@@ -22,6 +22,7 @@ async function messageWithCreateInternal(topic, messageData = {}, createIfNotExi
     await pubsub.topic(topic).publishMessage({
       json: messageData,
     });
+    functions.logger.debug(`Message emitted to ${topic}`);
   } catch (e) {
     if (!createIfNotExists || !e.message.includes("NOT_FOUND: Topic not found")) {
       throw e;
@@ -39,5 +40,4 @@ async function messageWithCreateInternal(topic, messageData = {}, createIfNotExi
     }
     await messageWithCreateInternal(topic, messageData, false);
   }
-  functions.logger.debug(`Message emitted to ${topic}`);
 }

@@ -1,4 +1,6 @@
 const {Storage} = require("@google-cloud/storage");
+const tmp = require("tmp");
+const fs = require("fs");
 
 const bucketName = "scam-hunter.appspot.com";
 const storage = new Storage();
@@ -30,6 +32,27 @@ function videoFileName(videoId, fileName, checkTime) {
   return videoId + "/" + fileName;
 }
 
+/**
+ * @param {File} file
+ * @returns {Promise<string>}
+ */
+async function getLocalTempCopyOfFile(file){
+  const tmpFile = tmp.fileSync();
+  await file.download({destination:tmpFile.name})
+  return tmpFile.name
+}
+
+/**
+ * @param {File} file
+ * @returns {Promise<string>}
+ */
+async function getFileContents(file){
+  const fileName = await getLocalTempCopyOfFile(file)
+  const contents = fs.readFileSync(fileName, 'utf8');
+  fs.unlinkSync(fileName);
+  return contents
+}
+
 async function writeVideoArtifacts(videoId, checkTime, videoJson, reportText, snapshotLocation, extractedText) {
   await videoFile(videoId, "video.json", null).save(JSON.stringify(videoJson, null, 2), {public: true});
   await videoFile(videoId, "report.txt", checkTime).save(reportText, {public: true});
@@ -40,6 +63,10 @@ async function writeVideoArtifacts(videoId, checkTime, videoJson, reportText, sn
   await videoFile(videoId, "text.txt", checkTime).save(extractedText, {public: true});
 }
 
+async function writeVideoVisionTextArtifacts(videoId, checkTime, text) {
+  await videoFile(videoId, "text-vision.txt", checkTime).save(text, {public: true});
+}
+
 async function deleteVideoArtifacts(videoId) {
   await bucket.deleteFiles({
     prefix: videoId + "/",
@@ -48,5 +75,8 @@ async function deleteVideoArtifacts(videoId) {
 
 exports.videoFile = videoFile;
 exports.videoFileName = videoFileName;
+exports.getLocalTempCopyOfFile = getLocalTempCopyOfFile;
+exports.getFileContents = getFileContents;
 exports.writeVideoArtifacts = writeVideoArtifacts;
+exports.writeVideoVisionTextArtifacts = writeVideoVisionTextArtifacts;
 exports.deleteVideoArtifacts = deleteVideoArtifacts;

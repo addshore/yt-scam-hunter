@@ -31,12 +31,21 @@ exports.onCall = functions
       checkAndUpdateStreamsStatusIfNotLive();
     });
 
+exports.onCallSingle = functions
+    .runWith(RUN_WITH)
+    .https
+    .onCall(async (data, context) => {
+      checkAndUpdateStreamStatusIfNotLive(data.id);
+    });
+// TODO oncall for a single video, so we can manually trigger this :)
+
 async function checkAndUpdateStreamsStatusIfNotLive() {
   const now = new Date();
   const someHoursAgo = new Date(now.getTime() - (cleanupCheckHours * ONE_HOUR));
 
   // Look for things we think are live, but that we havn't seen in 3 hours
-  const liveStreams = await collection.where("status", "==", youtube.STATUS_LIVE).where("lastSeen", "<=", someHoursAgo).get();
+  const liveStreams = await collection.where("status", "==", youtube.STATUS_LIVE).where("lastSeen", "<=", someHoursAgo).orderBy('lastSeen', 'ASC').get();
+  functions.logger.info("Found " + liveStreams.size + " live streams that haven't been seen in " + cleanupCheckHours + " hours");
   // Iterate through live streams
   for (let i = 0; i < liveStreams.size; i++) {
     await checkAndUpdateStreamStatusIfNotLive(liveStreams.docs[i].id);
@@ -53,6 +62,8 @@ async function checkAndUpdateStreamStatusIfNotLive(videoId) {
       status: currentStatus,
       notLiveSince: new Date(),
     });
+  } else {
+    functions.logger.info("Stream is still live: " + url + " : " + currentStatus);
   }
   return currentStatus;
 }
