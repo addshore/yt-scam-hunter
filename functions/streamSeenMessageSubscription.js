@@ -8,7 +8,8 @@ const pubsub = require("./src/pubsub");
 const tmp = require("tmp");
 
 const db = getFirestore();
-const collection = db.collection("suspectStreams");
+const collectionOfStreams = db.collection("suspectStreams");
+const collectionOfDomains = db.collection("domains");
 const ONE_HOUR = 60 * 60 * 1000;
 
 const TOPIC_STREAM_SEEN = "stream-seen";
@@ -39,13 +40,13 @@ async function checkStream(videoId) {
   const checkStartTime = new Date();
 
   const {info, status: currentStatus} = await youtube.basicInfoAndStatus(url);
-  const storedDoc = await collection.doc(videoId).get();
+  const storedDoc = await collectionOfStreams.doc(videoId).get();
 
   // If the video is not live at the start of this check, update the record or bail
   if ( currentStatus != youtube.STATUS_LIVE ) {
     functions.logger.info("Video not live: " + videoId, {videoId: videoId, currentStatus: currentStatus});
     if (storedDoc.exists) {
-      await collection.doc(videoId).update({status: currentStatus, notLiveSince: checkStartTime});
+      await collectionOfStreams.doc(videoId).update({status: currentStatus, notLiveSince: checkStartTime});
     }
     return;
   }
@@ -56,13 +57,13 @@ async function checkStream(videoId) {
 
     if (currentStatus != youtube.STATUS_LIVE) {
       functions.logger.info("Video no longer live: " + videoId, {videoId: videoId});
-      await collection.doc(videoId).update({lastSeen: new Date()});
+      await collectionOfStreams.doc(videoId).update({lastSeen: new Date()});
     }
 
     // If the video is already marked as bad, just store the fact that we have seen it again
     if (storedData.badDetected != undefined) {
       functions.logger.info("Video already marked as bad: " + videoId, {videoId: videoId});
-      await collection.doc(videoId).update({lastSeen: new Date()});
+      await collectionOfStreams.doc(videoId).update({lastSeen: new Date()});
       return;
     }
 
@@ -106,18 +107,18 @@ async function checkStream(videoId) {
 
   // Check the text for things that indicate a bad stream
   functions.logger.info("Looking for bad stuff in text: " + videoId, {videoId: videoId});
-  const badThings = badThingsInText(extractedText);
+  const badThings = await badThingsInText(extractedText);
 
   // If nothing bad, just update the document
   if (badThings.length == 0) {
     if (storedDoc.exists) {
-      await collection.doc(videoId).update({
+      await collectionOfStreams.doc(videoId).update({
         lastSeen: checkStartTime,
         lastScanned: checkStartTime,
         scanned: storedDoc.data().scanned + 1,
       });
     } else {
-      await collection.doc(videoId).set({
+      await collectionOfStreams.doc(videoId).set({
         firstSeen: checkStartTime,
         lastSeen: checkStartTime,
         lastScanned: checkStartTime,
@@ -134,14 +135,14 @@ async function checkStream(videoId) {
   functions.logger.info("Bad stuff found! " + videoId, {videoId: videoId, badThings: badThings});
   await storage.writeVideoArtifacts(videoId, checkStartTime, info, badThings.join("\n"), outputSnap, extractedText);
   if (storedDoc.exists) {
-    await collection.doc(videoId).update({
+    await collectionOfStreams.doc(videoId).update({
       lastSeen: checkStartTime,
       lastScanned: checkStartTime,
       badDetected: checkStartTime,
       scanned: storedDoc.data().scanned + 1,
     });
   } else {
-    await collection.doc(videoId).set({
+    await collectionOfStreams.doc(videoId).set({
       firstSeen: checkStartTime,
       lastSeen: checkStartTime,
       lastScanned: checkStartTime,
@@ -157,17 +158,8 @@ async function checkStream(videoId) {
   await pubsub.messageWithCreate(TOPIC_BAD_STREAM, {id: videoId, url: url});
 }
 
-/**
- * Returns a list of bad things identified in the text
- * @param {string} text to check
- * @returns Array of bad stuff found
- */
-function badThingsInText(text) {
-  text = text.toLowerCase();
-  const foundBadStuff = [];
-
-  // TODO think of a better way to give initial values or config to the app?
-  const badDomains = [
+async function getDomains() {
+  const hardcodedDomains = [
     "2xmusk.com",
     "2022binance.com",
     "ark-elonmusk.com",
@@ -209,6 +201,35 @@ function badThingsInText(text) {
     "crttesla.com",
     "2xark.com",
   ];
+
+  const domainsDoc = await collectionOfDomains.doc("all").get();
+  if (!domainsDoc.exists) {
+    return hardcodedDomains
+  }
+
+  let joined = hardcodedDomains.concat(domainsDoc.data().domains);
+  joined = [...new Set(joined)];
+  return joined
+}
+
+function getRegex() {
+  return [
+    "Mr\\.? Beast Crypto Charity Stream",
+    "double\\syour\\scrypto\\s+SCAN\\sQR[\\s-]CODE",
+    "\\d+((\\.|,)\\d+)?\\+? ?(ETH|BTC|SOL|ADA),? ?(to|you)? ?(get|to|get|receive|and),? ?\\d+((\\.|,)\\d+)?\\+? ?(ETH|BTC|SOL|ADA)?",
+  ];
+}
+
+/**
+ * Returns a list of bad things identified in the text
+ * @param {string} text to check
+ * @returns Array of bad stuff found
+ */
+async function badThingsInText(text) {
+  text = text.toLowerCase();
+  const foundBadStuff = [];
+
+  const badDomains = await getDomains();
   for (let i = 0; i < badDomains.length; i++) {
     const badDomain = badDomains[i].toLowerCase();
     if (text.includes(badDomain)) {
@@ -216,12 +237,7 @@ function badThingsInText(text) {
     }
   }
 
-  // TODO think of a better way to give initial values or config to the app?
-  const badRegex = [
-    "Mr\\.? Beast Crypto Charity Stream",
-    "double\\syour\\scrypto\\s+SCAN\\sQR[\\s-]CODE",
-    "\\d+((\\.|,)\\d+)?\\+? ?(ETH|BTC|SOL|ADA),? ?(to|you)? ?(get|to|get|receive|and),? ?\\d+((\\.|,)\\d+)?\\+? ?(ETH|BTC|SOL|ADA)?",
-  ];
+  const badRegex = getRegex();
   for (let i = 0; i < badRegex.length; i++) {
     const badRegexString = badRegex[i];
     const regex = new RegExp(badRegexString, "i");
