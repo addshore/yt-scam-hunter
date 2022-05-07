@@ -9,7 +9,7 @@ const collectionOfDomains = db.collection("domains");
 const collectionOfWallets = db.collection("wallets");
 
 // Cache on clients for 5 mins, in CDN for 10 mins
-const CACHE_CONTROL = "public, max-age=300, s-maxage=600"
+const CACHE_CONTROL = "public, max-age=300, s-maxage=600";
 const RUN_WITH = {
   timeoutSeconds: 10,
   memory: "256MB",
@@ -72,12 +72,12 @@ exports.callDomains = functions.runWith(RUN_WITH).https.onCall( async (data, con
 async function getDomains(callback) {
   const domainsDoc = await collectionOfDomains.doc("all");
   const domains = (await domainsDoc.get()).data().domains;
-  let returnData = {}
+  const returnData = {};
   for (let i = 0; i < domains.length; i++) {
-    const domain = domains[i]
+    const domain = domains[i];
     returnData[domain] = {
       url: "https://" + domain,
-    }
+    };
   }
   callback(returnData);
 }
@@ -95,23 +95,23 @@ exports.callWallets = functions.runWith(RUN_WITH).https.onCall( async (data, con
 });
 
 async function getWallets(callback) {
-    const walletsDoc = collectionOfWallets.doc("all");
-    const wallets = (await walletsDoc.get()).data();
-    let returnData = {
-      btc: {},
-      eth: {}
-    }
-    for (let i = 0; i < wallets.btc.length; i++) {
-      const wallet = wallets.btc[i]
-      returnData.btc[wallet] = {
-        lookupUrl: "https://blockchain.info/address/" + wallet,
-      }
-    }
-    for (let i = 0; i < wallets.eth.length; i++) {
-      const wallet = wallets.eth[i]
-      returnData.eth[wallet] = {
-        lookupUrl: "https://etherscan.io/address/" + wallet,
-      }
-    }
-    callback(returnData)
+  const walletsDoc = collectionOfWallets.doc("all");
+  const wallets = (await walletsDoc.get()).data();
+  const returnData = {
+    btc: {},
+    eth: {},
+  };
+  for (let i = 0; i < wallets.btc.length; i++) {
+    const wallet = wallets.btc[i];
+    returnData.btc[wallet] = {
+      lookupUrl: "https://blockchain.info/address/" + wallet,
+    };
+  }
+  for (let i = 0; i < wallets.eth.length; i++) {
+    const wallet = wallets.eth[i];
+    returnData.eth[wallet] = {
+      lookupUrl: "https://etherscan.io/address/" + wallet,
+    };
+  }
+  callback(returnData);
 }

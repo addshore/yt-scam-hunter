@@ -204,12 +204,12 @@ async function getDomains() {
 
   const domainsDoc = await collectionOfDomains.doc("all").get();
   if (!domainsDoc.exists) {
-    return hardcodedDomains
+    return hardcodedDomains;
   }
 
   let joined = hardcodedDomains.concat(domainsDoc.data().domains);
   joined = [...new Set(joined)];
-  return joined
+  return joined;
 }
 
 function getRegex() {
