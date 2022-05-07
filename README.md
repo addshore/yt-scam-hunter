@@ -2,23 +2,62 @@
 
 A little project to hunt for crypto scams on YouTube inspired from some [shouting into the void at YouTube](https://twitter.com/addshore/status/1520154767036751873).
 
-Currently exposed as a single API endpoint: https://us-central1-scam-hunter.cloudfunctions.net/currentBadStreams
+Currently exposed as a few API endpoints
 
-Which outputs data something like this:
+[/streams](https://us-central1-scam-hunter.cloudfunctions.net/streams), Currently live YouTube scam streams
 
 ```json
 {
-    "CAVbmHnoGVQ": {
-        "url": "https://www.youtube.com/watch?v=CAVbmHnoGVQ",
+    "P-hf0mFA6AI": {
+        "id": "P-hf0mFA6AI",
+        "url": "https://www.youtube.com/watch?v=P-hf0mFA6AI",
         "times": {
-            "firstSeen": "2022-05-04T18:43:23.271Z",
-            "badDetected": "2022-05-04T18:43:27.035Z"
+            "firstSeen": "2022-05-06T22:59:02.933Z",
+            "badDetected": "2022-05-06T22:59:02.933Z"
         },
         "files": {
-            "details": "https://storage.googleapis.com/scam-hunter.appspot.com/CAVbmHnoGVQ%2Fvideo.json",
-            "snapshot": "https://storage.googleapis.com/scam-hunter.appspot.com/CAVbmHnoGVQ%2F2022-05-04T18%3A43%3A27.035Z_snapshot.jpg",
-            "text": "https://storage.googleapis.com/scam-hunter.appspot.com/CAVbmHnoGVQ%2F2022-05-04T18%3A43%3A27.035Z_text.txt",
-            "report": "https://storage.googleapis.com/scam-hunter.appspot.com/CAVbmHnoGVQ%2F2022-05-04T18%3A43%3A27.035Z_report.txt"
+            "details": "https://storage.googleapis.com/scam-hunter.appspot.com/P-hf0mFA6AI%2Fvideo.json",
+            "snapshot": "https://storage.googleapis.com/scam-hunter.appspot.com/P-hf0mFA6AI%2F2022-05-06T22%3A59%3A02.933Z_snapshot.jpg",
+            "text": "https://storage.googleapis.com/scam-hunter.appspot.com/P-hf0mFA6AI%2F2022-05-06T22%3A59%3A02.933Z_text.txt",
+            "text-vision": "https://storage.googleapis.com/scam-hunter.appspot.com/P-hf0mFA6AI%2F2022-05-06T22%3A59%3A02.933Z_text-vision.txt",
+            "report": "https://storage.googleapis.com/scam-hunter.appspot.com/P-hf0mFA6AI%2F2022-05-06T22%3A59%3A02.933Z_report.txt"
+        }
+    },
+}
+```
+
+[/domains](https://us-central1-scam-hunter.cloudfunctions.net/domains), Domains involved in scams, extracted from the videos
+
+```json
+{
+    "elongive22.org": {
+        "url": "https://elongive22.org"
+    },
+    "2binance.net": {
+        "url": "https://2binance.net"
+    }
+}
+```
+
+
+[/wallets](https://us-central1-scam-hunter.cloudfunctions.net/wallets), Wallets involved in scams, extracted from the domains
+
+```json
+{
+    "btc": {
+        "19i77z9gbC6TgUcshneD8UQQUNvaNixchH": {
+            "lookupUrl": "https://blockchain.info/address/19i77z9gbC6TgUcshneD8UQQUNvaNixchH"
+        },
+        "bc1qpyttdffcce49g9jjrvmeszy877rv7nm32uccma": {
+            "lookupUrl": "https://blockchain.info/address/bc1qpyttdffcce49g9jjrvmeszy877rv7nm32uccma"
+        }
+    },
+    "eth": {
+        "0xaCF150b0dd71Fb95b3aF3A9c72Eb22DF3854129D": {
+            "lookupUrl": "https://etherscan.io/address/0xaCF150b0dd71Fb95b3aF3A9c72Eb22DF3854129D"
+        },
+        "0x04B53383701Ac45737deF9297CD8CC59f5697897": {
+            "lookupUrl": "https://etherscan.io/address/0x04B53383701Ac45737deF9297CD8CC59f5697897"
         }
     }
 }
