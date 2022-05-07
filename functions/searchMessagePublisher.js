@@ -13,14 +13,14 @@ exports.onSchedule = functions
     .runWith(RUN_WITH)
     .pubsub.schedule("every 1 hours") // TODO make this come from an env var
     .onRun(async () => {
-      publishMessage();
+      await publishMessage();
     });
 
 exports.onCall = functions
     .runWith(RUN_WITH)
     .https
     .onCall(async () => {
-      publishMessage();
+      await publishMessage();
     });
 
 async function publishMessage() {

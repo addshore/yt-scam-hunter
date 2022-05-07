@@ -9,6 +9,10 @@ const bucket = storage.bucket(bucketName);
 exports.storage = storage;
 exports.bucketName = bucketName;
 
+async function fileExistsAtPath(path) {
+  return await bucket.exists(path);
+}
+
 /**
  * @param {string} videoId
  * @param {string} fileName
@@ -73,6 +77,7 @@ async function deleteVideoArtifacts(videoId) {
   });
 }
 
+exports.fileExistsAtPath = fileExistsAtPath;
 exports.videoFile = videoFile;
 exports.videoFileName = videoFileName;
 exports.getLocalTempCopyOfFile = getLocalTempCopyOfFile;

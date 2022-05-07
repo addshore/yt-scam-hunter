@@ -21,23 +21,22 @@ exports.onSchedule = functions
     .runWith(RUN_WITH)
     .pubsub.schedule(cleanupSchedule)
     .onRun(async () => {
-      checkAndUpdateStreamsStatusIfNotLive();
+      await checkAndUpdateStreamsStatusIfNotLive();
     });
 
 exports.onCall = functions
     .runWith(RUN_WITH)
     .https
     .onCall(async () => {
-      checkAndUpdateStreamsStatusIfNotLive();
+      await checkAndUpdateStreamsStatusIfNotLive();
     });
 
 exports.onCallSingle = functions
     .runWith(RUN_WITH)
     .https
     .onCall(async (data, context) => {
-      checkAndUpdateStreamStatusIfNotLive(data.id);
+      await checkAndUpdateStreamStatusIfNotLive(data.id);
     });
-// TODO oncall for a single video, so we can manually trigger this :)
 
 async function checkAndUpdateStreamsStatusIfNotLive() {
   const now = new Date();

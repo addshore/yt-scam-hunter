@@ -45,7 +45,7 @@ async function getCurrentBad(callback) {
         "snapshot": storage.videoFile(data.id, "snapshot.jpg", badDate).publicUrl(),
         "text": storage.videoFile(data.id, "text.txt", badDate).publicUrl(),
         // text-vision is defined after bad streams are detected, so it may not exist?
-        "text-vision": storage.videoFile(data.id, "text-vision.txt", badDate).isPublic() ? storage.videoFile(data.id, "text-vision.txt", badDate).publicUrl() : undefined,
+        "text-vision": ( await storage.fileExistsAtPath(storage.videoFileName(data.id, "text-vision.txt", badDate))) ? storage.videoFile(data.id, "text-vision.txt", badDate).publicUrl() : undefined,
         "report": storage.videoFile(data.id, "report.txt", badDate).publicUrl(),
       },
     };
