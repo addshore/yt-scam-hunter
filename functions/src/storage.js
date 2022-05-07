@@ -36,21 +36,21 @@ function videoFileName(videoId, fileName, checkTime) {
  * @param {File} file
  * @returns {Promise<string>}
  */
-async function getLocalTempCopyOfFile(file){
+async function getLocalTempCopyOfFile(file) {
   const tmpFile = tmp.fileSync();
-  await file.download({destination:tmpFile.name})
-  return tmpFile.name
+  await file.download({destination: tmpFile.name});
+  return tmpFile.name;
 }
 
 /**
  * @param {File} file
  * @returns {Promise<string>}
  */
-async function getFileContents(file){
-  const fileName = await getLocalTempCopyOfFile(file)
-  const contents = fs.readFileSync(fileName, 'utf8');
+async function getFileContents(file) {
+  const fileName = await getLocalTempCopyOfFile(file);
+  const contents = fs.readFileSync(fileName, "utf8");
   fs.unlinkSync(fileName);
-  return contents
+  return contents;
 }
 
 async function writeVideoArtifacts(videoId, checkTime, videoJson, reportText, snapshotLocation, extractedText) {

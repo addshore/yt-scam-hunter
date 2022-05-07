@@ -26,8 +26,8 @@ exports.callSearchMessageSubscription = searchMessageSubscription.onCall;
 exports.callStreamSeenMessageSubscription = streamSeenMessageSubscription.onCall;
 exports.callCleanup = cleanup.onCall;
 exports.callCleanupSingle = cleanup.onCallSingle;
-exports.callBadStreamMessagePublish = badStreamMessageSubscription.onCall
-exports.callBadDomainMessagePublish = badDomainMessageSubscription.onCall
+exports.callBadStreamMessagePublish = badStreamMessageSubscription.onCall;
+exports.callBadDomainMessagePublish = badDomainMessageSubscription.onCall;
 
 // ////////////////////////
 // Scheduled Cloud Function
@@ -42,8 +42,8 @@ exports.scheduleCleanup = cleanup.onSchedule;
 
 exports.onSearchMessagePublish = searchMessageSubscription.onPublish;
 exports.onStreamSeenMessagePublish = streamSeenMessageSubscription.onPublish;
-exports.onBadStreamMessagePublish = badStreamMessageSubscription.onPublish
-exports.onBadDomainMessagePublish = badDomainMessageSubscription.onPublish
+exports.onBadStreamMessagePublish = badStreamMessageSubscription.onPublish;
+exports.onBadDomainMessagePublish = badDomainMessageSubscription.onPublish;
 
 // ////////////////////////
 // Event Cloud Function

@@ -30,7 +30,7 @@ exports.textFromImage = async function(imagePath) {
   await tessWorker.setParameters({
     tessedit_pageseg_mode: Tesseract.OEM.SPARSE_TEXT,
     tessedit_char_whitelist: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_*.,:;!?()[]{}@$%^&+=|\\/~`'\"#<> ",
-  })
+  });
   const {data: {text}} = await tessWorker.recognize(pokedFile.name);
   await tessWorker.terminate();
   return text;

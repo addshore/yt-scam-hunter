@@ -44,7 +44,7 @@ async function checkAndUpdateStreamsStatusIfNotLive() {
   const someHoursAgo = new Date(now.getTime() - (cleanupCheckHours * ONE_HOUR));
 
   // Look for things we think are live, but that we havn't seen in 3 hours
-  const liveStreams = await collection.where("status", "==", youtube.STATUS_LIVE).where("lastSeen", "<=", someHoursAgo).orderBy('lastSeen', 'ASC').get();
+  const liveStreams = await collection.where("status", "==", youtube.STATUS_LIVE).where("lastSeen", "<=", someHoursAgo).orderBy("lastSeen", "ASC").get();
   functions.logger.info("Found " + liveStreams.size + " live streams that haven't been seen in " + cleanupCheckHours + " hours");
   // Iterate through live streams
   for (let i = 0; i < liveStreams.size; i++) {
