@@ -1,72 +1,79 @@
 <template>
   <v-app>
     <v-main>
-      <v-card>
         <v-app-bar>
-          <v-app-bar-nav-icon></v-app-bar-nav-icon>
-          <v-toolbar-title>YT Scam Hunter</v-toolbar-title>
+          <v-toolbar-title>YouTube Scam Hunter</v-toolbar-title>
           <template v-slot:extension>
-            <v-tabs grow v-model="active_tab">
+            <v-tabs centered icons-and-text>
               <v-tab
                 v-for="tab of tabs"
-                :key="tab.index"
+                :key="tab.name"
+                :to="tab.link"
+                :value="tab.name"
               >
+              <v-icon icon="{{tab.icon}}">{{tab.icon}}</v-icon>
               {{tab.name}}
               </v-tab>
             </v-tabs>
           </template>
         </v-app-bar>
-        <v-sheet>
-          <div>
-              <!-- Change selected component according to selected tab -->
-            <div v-if="active_tab === 0">
-              <HomePage/>
-            </div>
-            <div v-if="active_tab === 1">
-              <StreamsPage/>
-            </div>
-            <div v-if="active_tab === 2">
-              <DomainsPage/>
-            </div>
-            <div v-if="active_tab === 3">
-              <WalletsPage/>
-            </div>
-          </div>
-        </v-sheet>
-      </v-card>
+        <router-view></router-view>
     </v-main>
+  <v-footer>
+    <v-card
+      elevation="0"
+      rounded="0"
+      width="100%"
+      class="bg-grey text-center"
+    >
+      <v-card-text>
+        <v-btn
+          class="mx-4"
+          icon="mdi-home"
+          variant="plain"
+          href="https://addshore.com"
+          target="_blank"
+        ></v-btn>
+        <v-btn
+          class="mx-4"
+          icon="mdi-github"
+          variant="plain"
+          href="https://github.com/addshore/yt-scam-hunter"
+          target="_blank"
+        ></v-btn>
+        <v-btn
+          class="mx-4"
+          icon="mdi-twitter"
+          variant="plain"
+          href="https://twitter.com/addshore"
+          target="_blank"
+        ></v-btn>
+      </v-card-text>
+
+      <v-divider></v-divider>
+
+      <v-card-text class="text-white">
+        {{ new Date().getFullYear() }} — <strong>Addshore</strong>
+      </v-card-text>
+    </v-card>
+  </v-footer>
   </v-app>
 </template>
 
 <script>
-import HomePage from "./components/HomePage.vue";
-import StreamsPage from "./components/StreamsPage.vue";
-import DomainsPage from "./components/DomainsPage.vue";
-import WalletsPage from "./components/WalletsPage.vue";
-
 export default {
   name: "App",
 
-  components: {
-    HomePage,
-    StreamsPage,
-    DomainsPage,
-    WalletsPage,
-  },
+  components: {},
 
   data: () => ({
-      active_tab: 0,
       tabs: [
-        { index: 0, name: 'Home' },
-        { index: 1, name: 'Streams' },
-        { index: 2, name: 'Domains' },
-        { index: 3, name: 'Wallets' }
+        { name: 'Home', link: '/', icon: 'mdi-home' },
+        { name: 'Streams', link: '/streams', icon: 'mdi-youtube' },
+        { name: 'Websites', link: '/websites', icon: 'mdi-web' },
+        { name: 'Wallets', link: '/wallets', icon: 'mdi-wallet' },
       ],
     }),
-  methods: {
-    tabsUpdate(tab) {
-      this.selectedTab = tab
-    },
-}
+  methods: {}
 };
 </script>
