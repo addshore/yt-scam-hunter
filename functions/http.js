@@ -18,6 +18,7 @@ const RUN_WITH = {
 exports.getCurrentBadStreams = functions.runWith(RUN_WITH).https.onRequest( async (request, response) => {
   getCurrentBadStreams(function(data) {
     response.set("Cache-Control", CACHE_CONTROL);
+    response.set("Access-Control-Allow-Origin", "*");
     response.send(data);
   });
 });
@@ -52,8 +53,11 @@ async function getCurrentBadStreams(callback) {
         "text-vision": ( await storage.fileExistsAtPath(storage.videoFileName(data.id, "text-vision.txt", badDate))) ? storage.videoFile(data.id, "text-vision.txt", badDate).publicUrl() : undefined,
         "report": storage.videoFile(data.id, "report.txt", badDate).publicUrl(),
       },
-      domains: data.domains,
-      wallets: data.wallets,
+      domains: data.domains ? domainsArrayFormatter(data.domains) : {},
+      wallets: data.wallets ? {
+        "eth": ethArrayFormatter(data.wallets.eth),
+        "btc": btcArrayFormatter(data.wallets.btc),
+      } : {},
     };
   }
   callback(badStreamsData);
@@ -62,6 +66,7 @@ async function getCurrentBadStreams(callback) {
 exports.getDomains = functions.runWith(RUN_WITH).https.onRequest( async (request, response) => {
   getDomains(function(data) {
     response.set("Cache-Control", CACHE_CONTROL);
+    response.set("Access-Control-Allow-Origin", "*");
     response.send(data);
   });
 });
@@ -72,21 +77,19 @@ exports.callDomains = functions.runWith(RUN_WITH).https.onCall( async (data, con
 });
 
 async function getDomains(callback) {
-  const domainsDoc = await collectionOfDomains.doc("all");
-  const domains = (await domainsDoc.get()).data().domains;
-  const returnData = {};
-  for (let i = 0; i < domains.length; i++) {
-    const domain = domains[i];
-    returnData[domain] = {
-      url: "https://" + domain,
-    };
+  const domainsDoc = collectionOfDomains.doc("all");
+  const domains = await domainsDoc.get();
+  if (!domains.exists) {
+    callback({});
+    return;
   }
-  callback(returnData);
+  callback(domainsArrayFormatter(domains.data().domains));
 }
 
 exports.getWallets = functions.runWith(RUN_WITH).https.onRequest( async (request, response) => {
   getWallets(function(data) {
     response.set("Cache-Control", CACHE_CONTROL);
+    response.set("Access-Control-Allow-Origin", "*");
     response.send(data);
   });
 });
@@ -98,22 +101,47 @@ exports.callWallets = functions.runWith(RUN_WITH).https.onCall( async (data, con
 
 async function getWallets(callback) {
   const walletsDoc = collectionOfWallets.doc("all");
-  const wallets = (await walletsDoc.get()).data();
-  const returnData = {
-    btc: {},
-    eth: {},
-  };
-  for (let i = 0; i < wallets.btc.length; i++) {
-    const wallet = wallets.btc[i];
-    returnData.btc[wallet] = {
-      lookupUrl: "https://blockchain.info/address/" + wallet,
+  const wallets = await walletsDoc.get();
+  if (!wallets.exists) {
+    callback({});
+    return;
+  }
+  const walletsData = wallets.data();
+  callback({
+    btc: btcArrayFormatter(walletsData.btc),
+    eth: ethArrayFormatter(walletsData.eth),
+  });
+}
+
+function domainsArrayFormatter(data) {
+  const returnData = {};
+  for (let i = 0; i < data.length; i++) {
+    const domain = data[i];
+    returnData[domain] = {
+      url: "https://" + domain,
     };
   }
-  for (let i = 0; i < wallets.eth.length; i++) {
-    const wallet = wallets.eth[i];
-    returnData.eth[wallet] = {
-      lookupUrl: "https://etherscan.io/address/" + wallet,
+  return returnData;
+}
+
+function btcArrayFormatter(data) {
+  const returnData = {};
+  for (let i = 0; i < data.length; i++) {
+    const wallet = data[i];
+    returnData[wallet] = {
+      info: "https://blockchain.info/address/" + wallet,
     };
   }
-  callback(returnData);
+  return returnData;
+}
+
+function ethArrayFormatter(data) {
+  const returnData = {};
+  for (let i = 0; i < data.length; i++) {
+    const wallet = data[i];
+    returnData[wallet] = {
+      info: "https://etherscan.io/address/" + wallet,
+    };
+  }
+  return returnData;
 }
