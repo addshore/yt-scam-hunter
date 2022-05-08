@@ -41,6 +41,7 @@ async function getCurrentBadStreams(callback) {
       url: data.url,
       times: {
         firstSeen: data.firstSeen.toDate().toISOString(),
+        lastSeen: data.lastSeen.toDate().toISOString(),
         badDetected: badDate.toISOString(),
         // notLiveSince was only added for entries since 06/05/2022 ish
         notLiveSince: data.notLiveSince ? data.notLiveSince.toDate().toISOString() : undefined,

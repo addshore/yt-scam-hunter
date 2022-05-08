@@ -6,7 +6,7 @@
         <p>This website tracks the live crypto scams that happen on YouTube every day.</p>
         <p>Crypto scams have existed on YouTube for the last few years. </p>
         <p>They havn't changed much, but YouTube has really failed to tackle them.</p>
-        <p>YouTube should probably do something about this...</p>
+        <p>The general pattern involves a hijacked account, a renammed channel, a video with some well known figures, and a link to a "competition" or giveaway.</p>
         <br/>
         <p>Use the tabs above to navigate through the data.</p>
       </v-col>

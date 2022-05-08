@@ -4,7 +4,8 @@
       <!-- Create a table for btc data -->
       <h2 class="headline font-weight-bold mb-5">Streams</h2>
       <p>Many live streams are currently running on YouTube trying to scam people out of money.</p>
-      <p>The streams in this list were found to be online in the past hour</p>
+      <p>Currently tracking <strong>{{count}}</strong> live streams</p>
+      <p>This page should update hourly</p>
       <p><small><v-icon icon="mdi-alert" color="red"/>These videos are all scams, don't do what they say!</small></p>
       <v-divider></v-divider>
       <v-progress-circular
@@ -83,6 +84,12 @@ export default {
       });
   },
   computed: {
+    count() {
+      if (this.streams === null) {
+        return "Loading...";
+      }
+      return Object.keys(this.streams).length;
+    },
       cards() {
         const streams = this.streams
         let cards = []
@@ -105,8 +112,9 @@ export default {
               times: {
                 name: "When",
                 html: "Stream started <strong>" + ( stream.details ? ago( new Date( stream.details.videoDetails.liveBroadcastDetails.startTimestamp ) ) : "???") +
-                "</strong>, seen <strong>" + ago( new Date( stream.times.firstSeen )) +
-                "</strong>, detected scam <strong>" + ago( new Date( stream.times.badDetected )) + "</strong>",
+                "</strong>, first seen <strong>" + ago( new Date( stream.times.firstSeen )) +
+                "</strong>, detected scam <strong>" + ago( new Date( stream.times.badDetected )) +
+                "</strong>, last seen <strong>" + ago( new Date( stream.times.lastSeen )) + "</strong>",
               },
               doamins: {
                 name: "Websites",
