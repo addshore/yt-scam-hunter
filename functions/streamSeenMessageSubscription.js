@@ -17,8 +17,8 @@ const TOPIC_BAD_STREAM = "bad-stream";
 
 // This does lots of processing (video download, frame extraction, and OCR)
 const RUN_WITH = {
-  timeoutSeconds: 60,
-  memory: "2GB",
+  timeoutSeconds: 45,
+  memory: "4GB",
 };
 
 exports.onPublish = functions
