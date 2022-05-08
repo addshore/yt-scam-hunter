@@ -3,3 +3,4 @@ node_modules
 google_client_secret.json
 .private.db.yml
 *.log
+.firebase

@@ -2,9 +2,9 @@
 
 A little project to hunt for crypto scams on YouTube inspired from some [shouting into the void at YouTube](https://twitter.com/addshore/status/1520154767036751873).
 
-Currently exposed as a few API endpoints.
+You can find the UI at https://scam-hunter.web.app/
 
-There is also a currently undeployed UI...
+Which makes use of a few different API endpoints.
 
 [/streams](https://us-central1-scam-hunter.cloudfunctions.net/streams), Currently live YouTube scam streams
 
