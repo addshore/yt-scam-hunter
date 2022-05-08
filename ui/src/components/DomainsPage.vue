@@ -40,7 +40,7 @@ export default {
   }),
   mounted() {
     axios
-      .get("https://us-central1-scam-hunter.cloudfunctions.net/domains")
+      .get(process.env.VUE_APP_ENDPOINT + "/domains")
       .then((response) => {
         this.domains = response.data;
       });

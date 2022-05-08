@@ -66,7 +66,7 @@ export default {
   }),
   mounted() {
     axios
-      .get("https://us-central1-scam-hunter.cloudfunctions.net/streams")
+      .get(process.env.VUE_APP_ENDPOINT + "/streams")
       .then((response) => {
         this.streams = response.data;
         // for each key in object

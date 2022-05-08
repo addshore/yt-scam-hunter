@@ -67,7 +67,7 @@ export default {
   }),
   mounted() {
     axios
-      .get("https://us-central1-scam-hunter.cloudfunctions.net/wallets")
+      .get( process.env.VUE_APP_ENDPOINT + "/wallets")
       .then((response) => {
         this.btc = response.data.btc;
         this.eth = response.data.eth;
