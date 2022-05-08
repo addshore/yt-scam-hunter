@@ -44,13 +44,13 @@ async function processDomain(domain, videoId) {
   // Scan the first URL that we can construct
   const url = "https://" + domain;
   const contentToScan = [];
-  const {content, links} = await extractFromURL(url);
-  contentToScan.push( content);
+  const {content: content, linkedUrls: links} = await extractFromURL(url);
+  contentToScan.push(content);
 
   // Also scan link on the page that we find
   for (let j = 0; j < links.length; j++) {
     const innerUrl = links[j];
-    const {innerContent, innerLinks} = await extractFromURL(innerUrl);
+    const {content: innerContent, linkedUrls: innerLinks} = await extractFromURL(innerUrl);
     contentToScan.push(innerContent);
     // Scan 1 more jump, if not scanned before
     // TODO XXX FIX Cannot read properties of undefined (reading 'length')
@@ -59,13 +59,11 @@ async function processDomain(domain, videoId) {
       if (links.includes(innerInnerUrl)) {
         continue;
       }
-      const {innerInnerContent} = await extractFromURL(innerInnerUrl);
+      const {content: innerInnerContent} = await extractFromURL(innerInnerUrl);
       contentToScan.push(innerInnerContent);
     }
   }
   functions.logger.debug("Got " + contentToScan.length + " HTMLs");
-
-  // TODO go out another jump for sites like https://ark-doublecoin.net/ -> https://ark-doublecoin.net/new -> https://ark-doublecoin.net/ethnew
 
   // Process all html looking for crypto wallets...
   let btcwallets = [];
