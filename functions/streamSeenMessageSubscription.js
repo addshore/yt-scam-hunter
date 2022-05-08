@@ -103,7 +103,7 @@ async function checkStream(videoId) {
 
   // Extract text from the frame
   functions.logger.info("Recognizing text: " + videoId, {videoId: videoId});
-  const extractedText = await tesseract.textFromImage(outputSnap);
+  const extractedText = await tesseract.textFromImageAWSCode(outputSnap);
 
   // Check the text for things that indicate a bad stream
   functions.logger.info("Looking for bad stuff in text: " + videoId, {videoId: videoId});

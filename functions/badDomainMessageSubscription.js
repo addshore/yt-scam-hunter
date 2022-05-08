@@ -41,59 +41,41 @@ exports.onCall = functions
 async function processDomain(domain, videoId) {
   const streamRef = collectionOfStreams.doc(videoId);
 
+  // Scan the first URL that we can construct
   const url = "https://" + domain;
-  const htmls = [];
-  htmls.push(await htmlPlusCookiesForUrl(url));
+  const contentToScan = [];
+  const {content, links} = await extractFromURL(url);
+  contentToScan.push( content);
 
-  // Also grab HTML for any links from this first page
-  const firstRoundMatches = getxPath(htmls[0], "//a/@href");
-  let filteredNextUrls = [];
-  for (let j = 0; j < firstRoundMatches.length; j++) {
-    const match = firstRoundMatches[j];
-    if (match.startsWith("http")) {
-      continue;
+  // Also scan link on the page that we find
+  for (let j = 0; j < links.length; j++) {
+    const innerUrl = links[j];
+    const {innerContent, innerLinks} = await extractFromURL(innerUrl);
+    contentToScan.push(innerContent);
+    // Scan 1 more jump, if not scanned before
+    // TODO XXX FIX Cannot read properties of undefined (reading 'length')
+    for (let k = 0; k < innerLinks.length; k++) {
+      const innerInnerUrl = innerLinks[k];
+      if (links.includes(innerInnerUrl)) {
+        continue;
+      }
+      const {innerInnerContent} = await extractFromURL(innerInnerUrl);
+      contentToScan.push(innerInnerContent);
     }
-    // get URLs from relative links
-    let innerUrl = url + "/" + match;
-
-    // strip everything after the last hash
-    const hashIndex = innerUrl.lastIndexOf("#");
-    if (hashIndex > 0) {
-      innerUrl = innerUrl.substring(0, hashIndex);
-    }
-
-    // trim trailing slash
-    if (innerUrl.endsWith("/")) {
-      innerUrl = innerUrl.substring(0, innerUrl.length - 1);
-    }
-
-    if ( innerUrl == url ) {
-      continue;
-    }
-
-    filteredNextUrls.push(innerUrl);
   }
-  filteredNextUrls = [...new Set(filteredNextUrls)];
+  functions.logger.debug("Got " + contentToScan.length + " HTMLs");
 
-  // Grab the HTML from these URLs too
-  for (let j = 0; j < filteredNextUrls.length; j++) {
-    const innerUrl = filteredNextUrls[j];
-    const innerHtml = await htmlPlusCookiesForUrl(innerUrl);
-    console.log(innerUrl);
-    htmls.push(innerHtml);
-  }
-  functions.logger.debug("Got " + htmls.length + " HTMLs");
+  // TODO go out another jump for sites like https://ark-doublecoin.net/ -> https://ark-doublecoin.net/new -> https://ark-doublecoin.net/ethnew
 
   // Process all html looking for crypto wallets...
   let btcwallets = [];
   let ethwallets = [];
-  for (let j = 0; j < htmls.length; j++) {
-    const html = htmls[j];
+  for (let j = 0; j < contentToScan.length; j++) {
+    const html = contentToScan[j];
     for (const match of html.matchAll(BTC_REGEX)) {
       const wallet = match[1];
       const walletCheck = await checkBTCWalletExists(wallet);
       if (walletCheck !== false) {
-        functions.logger.info("Found BTC wallet: " + wallet, {walletCheck: walletCheck});
         btcwallets.push(wallet);
       }
     }
@@ -101,15 +83,15 @@ async function processDomain(domain, videoId) {
       const wallet = match[1];
       const walletCheck = await checkETHWalletExists(wallet);
       if (walletCheck !== false) {
-        functions.logger.info("Found ETH wallet: " + wallet, {walletCheck: walletCheck});
         ethwallets.push(wallet);
       }
     }
   }
 
-  // make arrays unique
+  // make arrays unique and count them
   btcwallets = [...new Set(btcwallets)];
   ethwallets = [...new Set(ethwallets)];
+  functions.logger.info("Found " + btcwallets.length + " BTC wallets and " + ethwallets.length + " ETH wallets");
 
   // Bail if we have no wallets
   functions.logger.info("Detected " + ( Object.keys(btcwallets).length + Object.keys(ethwallets).length ) + " live wallets");
@@ -134,11 +116,68 @@ async function processDomain(domain, videoId) {
       eth: ethwallets,
     });
   } else {
-    await walletsDoc.update({
-      btc: FieldValue.arrayUnion(...btcwallets),
-      eth: FieldValue.arrayUnion(...ethwallets),
-    });
+    // Use arrayUnion to do updated, bu do this selectively to avoid "Function "FieldValue.arrayUnion()" requires at least 1 argument."
+    // ie. If the array is empty, it would error...
+    if (btcwallets.length > 0 && ethwallets.length > 0) {
+      await walletsDoc.update({
+        btc: FieldValue.arrayUnion(...btcwallets),
+        eth: FieldValue.arrayUnion(...ethwallets),
+      });
+    } else if (btcwallets.length > 0) {
+      await walletsDoc.update({
+        btc: FieldValue.arrayUnion(...btcwallets),
+      });
+    } else if (ethwallets.length > 0) {
+      await walletsDoc.update({
+        eth: FieldValue.arrayUnion(...ethwallets),
+      });
+    }
   }
+}
+
+/**
+ * Extracts text based on HTML and cookies from a URL, as well as returning other links found on the page.
+ * @param {string} url
+ * @returns {Promise<object>}
+ */
+async function extractFromURL( url ) {
+  functions.logger.info("Extracting content etc from URL: " + url);
+  const {html, cookies} = await htmlPlusCookiesForUrl(url);
+  const linkedUrls = extractLinksFromHtml(url, html);
+  const content = ( html + "\n\n" + cookies );
+  return {content, linkedUrls};
+}
+
+function extractLinksFromHtml( baseUrl, html ) {
+  const hrefMatches = getxPath(html, "//a/@href");
+  let linkedUrls = [];
+  for (let j = 0; j < hrefMatches.length; j++) {
+    const match = hrefMatches[j];
+    if (match.startsWith("http")) {
+      continue;
+    }
+    // get URLs from relative links
+    let innerUrl = baseUrl + "/" + match;
+
+    // strip everything after the last hash
+    const hashIndex = innerUrl.lastIndexOf("#");
+    if (hashIndex > 0) {
+      innerUrl = innerUrl.substring(0, hashIndex);
+    }
+
+    // trim trailing slash
+    if (innerUrl.endsWith("/")) {
+      innerUrl = innerUrl.substring(0, innerUrl.length - 1);
+    }
+
+    if ( innerUrl == baseUrl ) {
+      continue;
+    }
+
+    linkedUrls.push(innerUrl);
+  }
+  linkedUrls = [...new Set(linkedUrls)];
+  return linkedUrls;
 }
 
 async function checkETHWalletExists(wallet) {
@@ -178,17 +217,20 @@ async function htmlPlusCookiesForUrl(url) {
     controller.abort();
   }, 3000);
   try {
-    const response = await fetch(url, {signal: controller.signal});
-    let outputText = await response.text();
+    const response = await fetch(url, {
+      redirect: "follow",
+      follow: 10,
+      signal: controller.signal,
+    });
+    const outputText = await response.text();
     // Some of the sites store the wallets in the cookies, so grab boring text from there too
     if (response.headers.has("set-cookie")) {
-      const setCookie = response.headers.raw()["set-cookie"];
-      outputText = outputText + "\n\n" + setCookie;
+      return {html: outputText, cookies: response.headers.raw()["set-cookie"]};
     }
-    return outputText;
+    return {html: outputText, cookies: undefined};
   } catch (e) {
     functions.logger.error(e);
-    return "";
+    return {html: "", cookies: undefined};
   }
 }
 
