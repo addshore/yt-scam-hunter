@@ -15,7 +15,7 @@
         color="primary"
       ></v-progress-circular>
       <template v-for="(item, domain) in domains" :key="domain">
-        <a :href="item.url" target="_blank"
+        <a :href="item.url" target="_blank" rel="nofollow"
           ><v-chip>{{ domain }}</v-chip></a
         >
       </template>

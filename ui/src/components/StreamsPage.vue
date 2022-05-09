@@ -38,11 +38,11 @@
               <strong>{{detail.name}}: </strong>
               <span v-if="detail.html && !detail.link" v-html="detail.html"></span>
               <span v-if="detail.value && !detail.link">{{detail.value}}</span>
-              <a v-if="detail.value && detail.link" v-bind:href="detail.link" target="_blank">{{detail.value}}</a>
+              <a v-if="detail.value && detail.link" v-bind:href="detail.link" target="_blank" rel="nofollow">{{detail.value}}</a>
               <span v-if="detail.chips">
                 <template v-for="chip in detail.chips" v-bind:key="chip">
                   <v-chip v-if="!chip.link">{{chip.text}}</v-chip>
-                  <a v-if="chip.link" v-bind:href="chip.link" target="_blank"><v-chip>{{chip.text}}</v-chip></a>
+                  <a v-if="chip.link" v-bind:href="chip.link" target="_blank" rel="nofollow"><v-chip>{{chip.text}}</v-chip></a>
                 </template>
               </span>
             </div>
