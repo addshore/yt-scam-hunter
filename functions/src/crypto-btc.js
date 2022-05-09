@@ -15,7 +15,7 @@ exports.walletExists = async function(wallet) {
     const response = await fetch(checkUrl);
     const json = await response.json();
     // If json object has key total_received
-    if (Object.prototype.hasOwnProperty.call( json, "total_received")) {
+    if (Object.prototype.hasOwnProperty.call(json, "total_received")) {
       return true;
     }
     return false;
@@ -26,18 +26,28 @@ exports.walletExists = async function(wallet) {
 
 exports.walletsReceived = async function(wallets) {
   const walletsReceived = {};
-  const apiUrl = "https://blockchain.info/balance?active=" + wallets.join("|");
-  try {
-    const response = await fetch(apiUrl);
-    const json = await response.json();
-    for ( const wallet in json ) {
-      if ( Object.prototype.hasOwnProperty.call( json, wallet )) {
-        walletsReceived[wallet] = parseFloat( json[wallet].total_received ) * 0.00000001;
+
+  // run query for batches of 20 wallets (etherscan has this as a limit, so let just do it for blockchain.info too..?)
+  const batchSize = 20;
+  const batches = [];
+  for (let i = 0; i < wallets.length; i += batchSize) {
+    batches.push(wallets.slice(i, i + batchSize));
+  }
+  for (let i = 0; i < batches.length; i++) {
+    const batch = batches[i];
+
+    const apiUrl = "https://blockchain.info/balance?active=" + batch.join("|");
+    try {
+      const response = await fetch(apiUrl);
+      const json = await response.json();
+      for (const wallet in json) {
+        if (Object.prototype.hasOwnProperty.call(json, wallet)) {
+          walletsReceived[wallet] = parseFloat(json[wallet].total_received) * 0.00000001;
+        }
       }
+    } catch (e) {
+      functions.logger.error("Error fetching wallet batch, received: " + e);
     }
-  } catch (e) {
-    functions.logger.error("Error fetching wallet received: " + e);
-    return null;
   }
   return walletsReceived;
 };
