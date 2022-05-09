@@ -14,7 +14,7 @@ const cleanupCheckHours = 2;
 
 const RUN_WITH = {
   timeoutSeconds: 60 * 3,
-  memory: "128MB",
+  memory: "256MB",
 };
 
 exports.onSchedule = functions

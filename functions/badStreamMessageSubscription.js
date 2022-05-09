@@ -47,7 +47,11 @@ async function processText(videoId) {
   functions.logger.debug("Getting text from vision API: " + videoId, {videoId: videoId});
   const outputSnap = await storage.getLocalTempCopyOfFile(storage.videoFile(videoId, "snapshot.jpg", streamData.badDetected.toDate()));
   const visionTextResult = await visionClient.textDetection(outputSnap);
+  if (visionTextResult[0].error) {
+    functions.logger.error("Vision API error: " + visionTextResult[0].error.message, {videoId: videoId});
+  }
   const visionText = visionTextResult[0].fullTextAnnotation.text;
+  functions.logger.debug("Got vision text of length " + visionText.length , {videoId: videoId});
   storage.writeVideoVisionTextArtifacts(videoId, streamData.badDetected.toDate(), visionText);
 
   const newlyDetectedDomains = [...new Set([...matchDomainsInText(text), ...matchDomainsInText(visionText)])];
