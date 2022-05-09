@@ -5,7 +5,7 @@ const TOPIC_SEARCH_REQUEST = "search-request";
 
 const RUN_WITH = {
   // Should just be emiting a message, so 5 seconds
-  timeoutSeconds: 5,
+  timeoutSeconds: 15,
   memory: "128MB",
 };
 

@@ -20,7 +20,7 @@ const visionClient = new vision.ImageAnnotatorClient({
 
 const RUN_WITH = {
   timeoutSeconds: 30,
-  memory: "128MB",
+  memory: "256MB",
 };
 
 exports.onPublish = functions
@@ -51,7 +51,7 @@ async function processText(videoId) {
     functions.logger.error("Vision API error: " + visionTextResult[0].error.message, {videoId: videoId});
   }
   const visionText = visionTextResult[0].fullTextAnnotation.text;
-  functions.logger.debug("Got vision text of length " + visionText.length , {videoId: videoId});
+  functions.logger.debug("Got vision text of length " + visionText.length, {videoId: videoId});
   storage.writeVideoVisionTextArtifacts(videoId, streamData.badDetected.toDate(), visionText);
 
   const newlyDetectedDomains = [...new Set([...matchDomainsInText(text), ...matchDomainsInText(visionText)])];
