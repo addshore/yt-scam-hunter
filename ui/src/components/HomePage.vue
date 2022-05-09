@@ -8,7 +8,7 @@
         <p>They havn't changed much, but YouTube has really failed to tackle them.</p>
         <p>The general pattern involves a hijacked account, a renammed channel, a video with some well known figures, and a link to a "competition" or giveaway.</p>
         <br/>
-        <p>Currently tracking <router-link to="/streams">{{liveStreamCount}} streams</router-link>, <router-link to="/websites">{{domainCount}} websites</router-link>, and <router-link to="/wallets">{{walletCount}} wallets</router-link> holding a total of <a v-bind:href="googleConvertLink(btcTotalReceived,'BTC')" target="_blank">{{btcTotalReceived}} BTC</a> and <a v-bind:href="googleConvertLink(ethTotalBalance,'ETH')" target="_blank">{{ethTotalBalance}} ETH</a></p>
+        <p>Currently tracking <router-link to="/streams">{{liveStreamCount}} streams</router-link>, <router-link to="/websites">{{domainCount}} websites</router-link>, and <router-link to="/wallets">{{walletCount}} wallets</router-link> receving a total of <a v-bind:href="googleConvertLink(btcTotalReceived,'BTC')" target="_blank">{{btcTotalReceived}} BTC</a> and currently holding a total of <a v-bind:href="googleConvertLink(ethTotalBalance,'ETH')" target="_blank">{{ethTotalBalance}} ETH</a></p>
         <br/>
         <p>Use the tabs above to navigate through the data.</p>
       </v-col>
