@@ -56,7 +56,7 @@ export default {
         href: "https://coincodecap.com/a-youtube-channel-hacked-and-renamed-to-tesla-to-stream-crypto-scam",
         date: "22 April 2022",
         extract:
-          "According to him the hacker changed the channel name to “Tesla” and streamed some crypto scam for about 6 hours.",
+          "According to him the hacker changed the channel name to “Tesla” and streamed some crypto scam for about 6 hours",
       },
       {
         title:
@@ -64,7 +64,7 @@ export default {
         href: "https://www.independent.co.uk/tech/youtube-bitcoin-giveaway-scam-elon-musk-ethereum-b2048425.html",
         date: "1 April 2022",
         extract:
-          "Videos promoting fake cryptocurrency giveaways have been attracting tens of thousands of live views on YouTube.",
+          "Videos promoting fake cryptocurrency giveaways have been attracting tens of thousands of live views on YouTube",
       },
       {
         title: "FullyCrypto: Beware the YouTube Live Stream Crypto Scam",
@@ -74,11 +74,25 @@ export default {
           "Crypto scammers are still trying to steal your money through fake YouTube giveaways",
       },
       {
+        title: "9to5mac: Fake YouTube Apple event stream draws 30k viewers before turning into crypto scam",
+        href: "https://9to5mac.com/2021/10/18/fake-apple-event-crypto-scam/",
+        date: "18 October 2021",
+        extract:
+          "An unofficial YouTube stream of the Apple event has drawn tens of thousands of viewers ahead of Apple’s actual October ‘Unleashed’ event going live",
+      },
+      {
         title: "BBC: Apple co-founder sues YouTube over Bitcoin scam",
         href: "https://www.bbc.co.uk/news/technology-53512569",
         date: "23 July 2020",
         extract:
-          'In response YouTube\'s owner Google said that it took abuse "seriously" and took action quickly on scams.',
+          'In response YouTube\'s owner Google said that it took abuse "seriously" and took action quickly on scams',
+      },
+      {
+        title: "Twitter: CryptoPointHindi",
+        href: "https://www.bbc.co.uk/news/technology-53512569",
+        date: "30 December 2019",
+        extract:
+          'Hi @VitalikButerin there are loads of fake Giveaway running on YouTube under Ethereum channel name. These con artist are using your video and broadcasting it live and asking for ETH.',
       },
     ],
     liveStreamCount: "Loading",
