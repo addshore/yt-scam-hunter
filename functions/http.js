@@ -2,16 +2,18 @@ const functions = require("firebase-functions");
 const {getFirestore} = require("firebase-admin/firestore");
 const storage = require("./src/storage");
 const youtube = require("./src/youtube");
+const cryptoBtc = require("./src/crypto-btc");
+const cryptoEth = require("./src/crypto-eth");
 
 const db = getFirestore();
 const collectionOfStreams = db.collection("suspectStreams");
 const collectionOfDomains = db.collection("domains");
 const collectionOfWallets = db.collection("wallets");
 
-// Cache on clients for 5 mins, in CDN for 10 mins
-const CACHE_CONTROL = "public, max-age=300, s-maxage=600";
+// Cache on clients for 10 mins, in CDN for 10 mins
+const CACHE_CONTROL = "public, max-age=600, s-maxage=600";
 const RUN_WITH = {
-  timeoutSeconds: 10,
+  timeoutSeconds: 15,
   memory: "256MB",
 };
 
@@ -108,9 +110,16 @@ async function getWallets(callback) {
     return;
   }
   const walletsData = wallets.data();
+  // TODO if these requests take too long, run the colelction of balances on a cron instead? (But these responses are cached, so should be fine?)
   callback({
-    btc: btcArrayFormatter(walletsData.btc),
-    eth: ethArrayFormatter(walletsData.eth),
+    btc: btcArrayFormatter(
+        walletsData.btc,
+        await cryptoBtc.walletsReceived(walletsData.btc),
+    ),
+    eth: ethArrayFormatter(
+        walletsData.eth,
+        await cryptoEth.walletsBalance(walletsData.eth),
+    ),
   });
 }
 
@@ -125,23 +134,25 @@ function domainsArrayFormatter(data) {
   return returnData;
 }
 
-function btcArrayFormatter(data) {
+function btcArrayFormatter(wallets, balances) {
   const returnData = {};
-  for (let i = 0; i < data.length; i++) {
-    const wallet = data[i];
+  for (let i = 0; i < wallets.length; i++) {
+    const wallet = wallets[i];
     returnData[wallet] = {
-      info: "https://blockchain.info/address/" + wallet,
+      info: cryptoBtc.infoLink(wallet),
+      received: balances ? balances[wallet] : undefined,
     };
   }
   return returnData;
 }
 
-function ethArrayFormatter(data) {
+function ethArrayFormatter(wallets, balances) {
   const returnData = {};
-  for (let i = 0; i < data.length; i++) {
-    const wallet = data[i];
+  for (let i = 0; i < wallets.length; i++) {
+    const wallet = wallets[i];
     returnData[wallet] = {
-      info: "https://etherscan.io/address/" + wallet,
+      info: cryptoEth.infoLink(wallet),
+      balance: balances ? balances[wallet] : undefined,
     };
   }
   return returnData;

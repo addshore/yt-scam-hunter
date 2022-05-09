@@ -3,7 +3,8 @@ const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 const fetch = require("node-fetch");
 const xpath = require("xpath");
 const Dom = require("xmldom").DOMParser;
-const Web3 = require("web3");
+const cryptoBtc = require("./src/crypto-btc");
+const cryptoEth = require("./src/crypto-eth");
 
 const TOPIC_BAD_DOMAIN = "bad-domain";
 // Each regex is surrounded with (?:[^a-zA-Z0-9]|^|$) to avoid matching on other parts of other wallet addresses
@@ -72,14 +73,14 @@ async function processDomain(domain, videoId) {
     const html = contentToScan[j];
     for (const match of html.matchAll(BTC_REGEX)) {
       const wallet = match[1];
-      const walletCheck = await checkBTCWalletExists(wallet);
+      const walletCheck = await cryptoBtc.walletExists(wallet);
       if (walletCheck !== false) {
         btcwallets.push(wallet);
       }
     }
     for (const match of html.matchAll(ETH_REGEX)) {
       const wallet = match[1];
-      const walletCheck = await checkETHWalletExists(wallet);
+      const walletCheck = await cryptoEth.walletExists(wallet);
       if (walletCheck !== false) {
         ethwallets.push(wallet);
       }
@@ -176,37 +177,6 @@ function extractLinksFromHtml( baseUrl, html ) {
   }
   linkedUrls = [...new Set(linkedUrls)];
   return linkedUrls;
-}
-
-async function checkETHWalletExists(wallet) {
-  const checkUrl = "https://api.etherscan.io/api?module=account&action=balance&address=" + wallet + "&apikey=" + process.env.ETHERSCAN_KEY;
-  try {
-    const response = await fetch(checkUrl);
-    const json = await response.json();
-    if (Object.prototype.hasOwnProperty.call( json, "result")) {
-      const wei = json.result;
-      const etherValue = Web3.utils.fromWei(wei, "ether");
-      return etherValue;
-    }
-    return false;
-  } catch (e) {
-    return null;
-  }
-}
-
-async function checkBTCWalletExists(wallet) {
-  const checkUrl = "https://blockchain.info/rawaddr/" + wallet;
-  try {
-    const response = await fetch(checkUrl);
-    const json = await response.json();
-    // If json object has key total_received
-    if (Object.prototype.hasOwnProperty.call( json, "total_received")) {
-      return true;
-    }
-    return false;
-  } catch (e) {
-    return null;
-  }
 }
 
 async function htmlPlusCookiesForUrl(url) {

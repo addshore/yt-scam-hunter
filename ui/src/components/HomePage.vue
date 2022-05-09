@@ -8,6 +8,8 @@
         <p>They havn't changed much, but YouTube has really failed to tackle them.</p>
         <p>The general pattern involves a hijacked account, a renammed channel, a video with some well known figures, and a link to a "competition" or giveaway.</p>
         <br/>
+        <p>Currently tracking <router-link to="/streams">{{liveStreamCount}} streams</router-link>, <router-link to="/websites">{{domainCount}} websites</router-link>, and <router-link to="/wallets">{{walletCount}} wallets</router-link> holding a total of <a v-bind:href="googleConvertLink(btcReceived,'BTC')" target="_blank">{{btcTotalReceived}} BTC</a> and <a v-bind:href="googleConvertLink(ethBalance,'ETH')" target="_blank">{{ethTotalBalance}} ETH</a></p>
+        <br/>
         <p>Use the tabs above to navigate through the data.</p>
       </v-col>
 
@@ -36,20 +38,13 @@
             </div>
           </v-timeline-item>
         </v-timeline>
-
-        <!-- <v-row justify="center">
-          <p v-for="(next, i) in newsLinks" :key="i" :href="next.href">
-            {{ next.date }},<a class="subheading mx-3" target="_blank">
-              {{ next.text }}
-            </a>
-          </p>
-        </v-row> -->
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
+import axios from "axios";
 export default {
   name: "HomePage",
 
@@ -86,6 +81,41 @@ export default {
           'In response YouTube\'s owner Google said that it took abuse "seriously" and took action quickly on scams.',
       },
     ],
+    liveStreamCount: "Loading",
+    domainCount: "Loading",
+    walletCount: "Loading",
+    btcTotalReceived: "Loading",
+    ethTotalBalance: "Loading",
   }),
+  mounted() {
+    axios
+      .get(process.env.VUE_APP_ENDPOINT + "/streams")
+      .then((response) => {
+        this.liveStreamCount = Object.keys(response.data).length;
+      });
+    axios
+      .get(process.env.VUE_APP_ENDPOINT + "/domains")
+      .then((response) => {
+        this.domainCount = Object.keys(response.data).length;
+      });
+    axios.get(process.env.VUE_APP_ENDPOINT + "/wallets").then((response) => {
+      this.walletCount = 0
+      this.btcTotalReceived = 0
+      for (let address in response.data.btc) {
+        this.btcTotalReceived += parseFloat(response.data.btc[address].received)
+        this.walletCount++
+      }
+      this.ethTotalBalance = 0
+      for (let address in response.data.eth) {
+        this.ethTotalBalance += parseFloat(response.data.eth[address].balance)
+        this.walletCount++
+      }
+    });
+  },
+  methods : {
+    googleConvertLink(ammount, from){
+      return "https://www.google.com/search?q=" + ammount + " " + from + " in USD";
+    }
+  },
 };
 </script>
