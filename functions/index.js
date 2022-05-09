@@ -58,15 +58,30 @@ exports.suspectStreamsOnUpdateCheckIfWeCanDelete = cleanup.onUpdateCheckIfWeCanD
 exports.suspectStreamsOnDelete = cleanup.onDeleteAlsoRemoveArtifacts;
 
 const pubsub = require("./src/pubsub");
-const {getFirestore} = require("firebase-admin/firestore");
+const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 const db = getFirestore();
-const collection = db.collection("suspectStreams");
-const TOPIC_BAD_STREAM = "bad-stream";
+const collectionOfDomains = db.collection("domains");
+const TOPIC_BAD_DOMAIN = "bad-domain";
+
 exports.hack = functions.https.onCall(async (data, context) => {
-  const allBadStreams = await collection.where("badDetected", "!=", null).get();
-  functions.logger.info("got bad streams", allBadStreams.docs.length);
-  for (let i = 0; i < allBadStreams.docs.length; i++) {
-    const streamData = allBadStreams.docs[i].data();
-    await pubsub.messageWithCreate(TOPIC_BAD_STREAM, {id: streamData.id, url: streamData.url});
+  const liveDomains = [data.domain];
+
+  const domainsDoc = collectionOfDomains.doc("all");
+  if (! (await domainsDoc.get() ).exists ) {
+    functions.logger.info("Creating new domains doc");
+    await domainsDoc.set({
+      domains: liveDomains,
+    });
+  } else {
+    await domainsDoc.update({
+      domains: FieldValue.arrayUnion(...liveDomains),
+    });
+  }
+
+  // Publish messages about domains
+  for (let i = 0; i < liveDomains.length; i++) {
+    const domain = liveDomains[i];
+    // Send a message to the bad-stream topic
+    await pubsub.messageWithCreate(TOPIC_BAD_DOMAIN, {domain: domain});
   }
 });

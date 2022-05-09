@@ -22,26 +22,24 @@ const collectionOfWallets = db.collection("wallets");
 // - Wallet checks
 const RUN_WITH = {
   timeoutSeconds: 90,
-  memory: "128MB",
+  memory: "256MB",
 };
 
 exports.onPublish = functions
     .runWith(RUN_WITH)
     .pubsub.topic(TOPIC_BAD_DOMAIN)
     .onPublish(async (message, context) => {
-      await processDomain(message.json.domain, message.json.videoId);
+      await processDomain(message.json.domain, message.json.videoId ? message.json.videoId : undefined);
     });
 
 exports.onCall = functions
     .runWith(RUN_WITH)
     .https
     .onCall(async (data, context) => {
-      await processDomain(data.domain, data.videoId);
+      await processDomain(data.domain, data.videoId ? data.videoId : undefined);
     });
 
-async function processDomain(domain, videoId) {
-  const streamRef = collectionOfStreams.doc(videoId);
-
+async function processDomain(domain, videoId = undefined) {
   // Scan the first URL that we can construct
   const url = "https://" + domain;
   const contentToScan = [];
@@ -98,13 +96,16 @@ async function processDomain(domain, videoId) {
     return;
   }
 
-  // Update things related to the stream
-  streamRef.update({
-    wallets: {
-      btc: btcwallets,
-      eth: ethwallets,
-    },
-  });
+  // Update things related to the stream (If this domain relates to a stream)
+  if (videoId) {
+    const streamRef = collectionOfStreams.doc(videoId);
+    streamRef.update({
+      wallets: {
+        btc: btcwallets,
+        eth: ethwallets,
+      },
+    });
+  }
 
   // Record the wallets
   const walletsDoc = collectionOfWallets.doc("all");

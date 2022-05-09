@@ -8,7 +8,7 @@
         <p>They havn't changed much, but YouTube has really failed to tackle them.</p>
         <p>The general pattern involves a hijacked account, a renammed channel, a video with some well known figures, and a link to a "competition" or giveaway.</p>
         <br/>
-        <p>Currently tracking <router-link to="/streams">{{liveStreamCount}} streams</router-link>, <router-link to="/websites">{{domainCount}} websites</router-link>, and <router-link to="/wallets">{{walletCount}} wallets</router-link> receving a total of <a v-bind:href="googleConvertLink(btcTotalReceived,'BTC')" target="_blank">{{btcTotalReceived}} BTC</a> and currently holding a total of <a v-bind:href="googleConvertLink(ethTotalBalance,'ETH')" target="_blank">{{ethTotalBalance}} ETH</a></p>
+        <p>Currently tracking <router-link to="/streams">{{liveStreamCount}} streams</router-link>, <router-link to="/websites">{{domainCount}} websites</router-link>, and <router-link to="/wallets">{{walletCount}} wallets</router-link> receiving a total of <a v-bind:href="googleConvertLink(btcTotalReceived,'BTC')" target="_blank">{{btcTotalReceived}} BTC</a> and currently holding a total of <a v-bind:href="googleConvertLink(ethTotalBalance,'ETH')" target="_blank">{{ethTotalBalance}} ETH</a></p>
         <br/>
         <p>Use the tabs above to navigate through the data.</p>
       </v-col>
@@ -50,6 +50,14 @@ export default {
 
   data: () => ({
     newsLinks: [
+      {
+        title:
+          "McAfee: Crypto Scammers Exploit: Elon Musk Speaks on Cryptocurrency",
+        href: "https://www.mcafee.com/blogs/other-blogs/mcafee-labs/crypto-scammers-exploit-talk-on-cryptocurrency/",
+        date: "5 May 2022",
+        extract:
+          "Cryptocurrency users are a constant target of threat actors, who seek new ways to make victims fall into a trap. Although the promise to double the crypto assets is an old trick, it appears that it is still lucrative.",
+      },
       {
         title:
           "CoinCodeCap: A YouTube Channel Hacked and Renamed to Tesla to Stream Crypto Scam",
