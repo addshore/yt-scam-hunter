@@ -142,41 +142,69 @@ async function processDomain(domain, videoId) {
 async function extractFromURL( url ) {
   functions.logger.info("Extracting content etc from URL: " + url);
   const {html, cookies} = await htmlPlusCookiesForUrl(url);
-  const linkedUrls = extractLinksFromHtml(url, html);
+  const linksFromATags = extractLinksFromHtmlATags(url, html);
+  const linksFromOnClicks = extractLinksFromOnClickWindowLocations(url, html);
   const content = ( html + "\n\n" + cookies );
-  return {content, linkedUrls};
+  return {content, linkedUrls: [...new Set([].concat(linksFromATags).concat(linksFromOnClicks))]};
 }
 
-function extractLinksFromHtml( baseUrl, html ) {
+function extractLinksFromHtmlATags( baseUrl, html ) {
+  const linkedUrls = [];
   const hrefMatches = getxPath(html, "//a/@href");
-  let linkedUrls = [];
   for (let j = 0; j < hrefMatches.length; j++) {
     const match = hrefMatches[j];
-    if (match.startsWith("http")) {
-      continue;
+    const processedUrl = anyLinkTargetToOnSiteUrl(baseUrl, match);
+    if (processedUrl) {
+      linkedUrls.push(processedUrl);
     }
-    // get URLs from relative links
-    let innerUrl = baseUrl + "/" + match;
-
-    // strip everything after the last hash
-    const hashIndex = innerUrl.lastIndexOf("#");
-    if (hashIndex > 0) {
-      innerUrl = innerUrl.substring(0, hashIndex);
-    }
-
-    // trim trailing slash
-    if (innerUrl.endsWith("/")) {
-      innerUrl = innerUrl.substring(0, innerUrl.length - 1);
-    }
-
-    if ( innerUrl == baseUrl ) {
-      continue;
-    }
-
-    linkedUrls.push(innerUrl);
   }
-  linkedUrls = [...new Set(linkedUrls)];
-  return linkedUrls;
+  return [...new Set(linkedUrls)];
+}
+
+function extractLinksFromOnClickWindowLocations( baseUrl, html ) {
+  const linkedUrls = [];
+  const onclickMatches = getxPath(html, "//@onclick");
+  // Expect "window.location = 'eth/index.html'"
+  for (let j = 0; j < onclickMatches.length; j++) {
+    const match = onclickMatches[j];
+    const urlMatch = match.match(/window\.location = '(.*)'/);
+    // Skip if we have some other onclick that doesnt match window.location
+    if (!urlMatch || urlMatch.length < 2) {
+      continue;
+    }
+    const windowLocation = urlMatch[1];
+    const processedUrl = anyLinkTargetToOnSiteUrl(baseUrl, windowLocation);
+    if (processedUrl) {
+      linkedUrls.push(processedUrl);
+    }
+  }
+  return [...new Set(linkedUrls)];
+}
+
+function anyLinkTargetToOnSiteUrl( baseUrl, linkTarget ) {
+  // Skip http prefixes, assuming they are links to elsewhere
+  if (linkTarget.startsWith("http")) {
+    return false;
+  }
+  // get URLs from relative links
+  let processedUrl = baseUrl + "/" + linkTarget;
+
+  // strip everything after the last hash
+  const hashIndex = processedUrl.lastIndexOf("#");
+  if (hashIndex > 0) {
+    processedUrl = processedUrl.substring(0, hashIndex);
+  }
+
+  // trim trailing slash
+  if (processedUrl.endsWith("/")) {
+    processedUrl = processedUrl.substring(0, processedUrl.length - 1);
+  }
+
+  if ( processedUrl == baseUrl ) {
+    return false;
+  }
+
+  return processedUrl;
 }
 
 async function htmlPlusCookiesForUrl(url) {
