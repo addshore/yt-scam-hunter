@@ -23,7 +23,6 @@
     "firebase-admin": "^10.0.2",
     "firebase-functions": "^3.18.0",
     "jimp": "^0.16.1",
-    "tcp-ping-port": "^1.0.1",
     "tesseract.js": "^2.1.5",
     "tlds": "^1.231.0",
     "tmp": "^0.2.1",

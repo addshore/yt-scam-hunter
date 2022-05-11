@@ -3,7 +3,6 @@ const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 const vision = require("@google-cloud/vision");
 const tlds = require("tlds");
 const fetch = require("node-fetch");
-const {tcpPingPort} = require("tcp-ping-port");
 const storage = require("./src/storage");
 const pubsub = require("./src/pubsub");
 
@@ -62,54 +61,44 @@ async function processText(videoId) {
     return;
   }
 
-  // TODO see if a domain resolves
-  const resolvableDomains = [];
+  // Check if these are live sites before counting then as real domains
+  const liveDomains = [];
   for (let i = 0; i < newlyDetectedDomains.length; i++) {
     const domain = newlyDetectedDomains[i];
-    const resolveResult = await tcpPingPort(domain, 80, {dnsTimeout: 1000});
-    if (resolveResult) {
-      resolvableDomains.push(domain);
-    }
-  }
-
-  // Check if these are live sites before counting then as real domains
-  const retrievableDomains = [];
-  for (let i = 0; i < resolvableDomains.length; i++) {
-    const domain = resolvableDomains[i];
     const url = "https://" + domain;
     const isLive = await isUrl200Response(url);
     if (isLive) {
-      retrievableDomains.push(domain);
+      liveDomains.push(domain);
     }
   }
 
-  functions.logger.info("Detected " + resolvableDomains.length + " resolvable and " + retrievableDomains.length + " retrievable domains");
-  if (resolvableDomains.length == 0) {
+  functions.logger.info("Detected " + liveDomains.length + " live domains");
+  if (liveDomains.length == 0) {
     return;
   }
 
-  // Update things related to the stream (resolvable domains)
+  // Update things related to the stream
   streamRef.update({
-    domains: resolvableDomains,
+    domains: liveDomains,
   });
   storage.writeVideoVisionTextArtifacts(videoId, streamData.badDetected.toDate(), visionText);
 
-  // Record the resolvable domains
+  // Record the domains
   const domainsDoc = collectionOfDomains.doc("all");
   if (! (await domainsDoc.get() ).exists ) {
     functions.logger.info("Creating new domains doc");
     await domainsDoc.set({
-      domains: resolvableDomains,
+      domains: liveDomains,
     });
   } else {
     await domainsDoc.update({
-      domains: FieldValue.arrayUnion(...resolvableDomains),
+      domains: FieldValue.arrayUnion(...liveDomains),
     });
   }
 
-  // Publish messages about retrievable domains only
-  for (let i = 0; i < retrievableDomains.length; i++) {
-    const domain = retrievableDomains[i];
+  // Publish messages about domains
+  for (let i = 0; i < liveDomains.length; i++) {
+    const domain = liveDomains[i];
     // Send a message to the bad-stream topic
     await pubsub.messageWithCreate(TOPIC_BAD_DOMAIN, {videoId: videoId, domain: domain});
   }
