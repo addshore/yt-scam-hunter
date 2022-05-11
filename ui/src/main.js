@@ -5,6 +5,7 @@ import vuetify from './plugins/vuetify'
 import App from './App.vue'
 import { loadFonts } from './plugins/webfontloader'
 import { createRouter, createWebHashHistory } from 'vue-router'
+import titleMixin from './mixins/titleMixin'
 
 import HomePage from "./components/HomePage.vue";
 import StreamsPage from "./components/StreamsPage.vue";
@@ -29,4 +30,5 @@ loadFonts()
 const app = createApp(App)
 app.use(vuetify)
 app.use(router)
+app.mixin(titleMixin)
 app.mount('#app')

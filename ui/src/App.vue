@@ -67,6 +67,7 @@
 <script>
 export default {
   name: "App",
+  title: "YouTube Scam Hunter",
 
   components: {},
 
