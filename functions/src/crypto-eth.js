@@ -1,5 +1,4 @@
 const functions = require("firebase-functions");
-const fetch = require("node-fetch");
 const Web3 = require("web3");
 
 exports.infoLink = function(wallet) {

@@ -1,6 +1,5 @@
 const functions = require("firebase-functions");
 const {getFirestore, FieldValue} = require("firebase-admin/firestore");
-const fetch = require("node-fetch");
 const xpath = require("xpath");
 const Dom = require("xmldom").DOMParser;
 const cryptoBtc = require("./src/crypto-btc");

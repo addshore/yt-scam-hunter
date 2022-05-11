@@ -8,7 +8,11 @@ const badDomainMessageSubscription = require("./badDomainMessageSubscription");
 const searchMessagePublisher = require("./searchMessagePublisher");
 const searchMessageSubscription = require("./searchMessageSubscription");
 const streamSeenMessageSubscription = require("./streamSeenMessageSubscription");
+
 const cleanup = require("./cleanup");
+
+// Global fetch so that fetch-mock is easier to use for tests
+import './src/fetch-polyfill'
 
 // ////////////////////////
 // HTTP Cloud Function

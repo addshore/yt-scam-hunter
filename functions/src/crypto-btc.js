@@ -1,5 +1,4 @@
 const functions = require("firebase-functions");
-const fetch = require("node-fetch");
 
 exports.infoLink = function(wallet) {
   return "https://blockchain.info/address/" + wallet;

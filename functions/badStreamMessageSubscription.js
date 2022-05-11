@@ -2,7 +2,6 @@ const functions = require("firebase-functions");
 const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 const vision = require("@google-cloud/vision");
 const tlds = require("tlds");
-const fetch = require("node-fetch");
 const storage = require("./src/storage");
 const pubsub = require("./src/pubsub");
 
