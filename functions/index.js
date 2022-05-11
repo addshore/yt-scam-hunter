@@ -12,7 +12,7 @@ const streamSeenMessageSubscription = require("./streamSeenMessageSubscription")
 const cleanup = require("./cleanup");
 
 // Global fetch so that fetch-mock is easier to use for tests
-import './src/fetch-polyfill'
+require("./src/fetch-polyfill");
 
 // ////////////////////////
 // HTTP Cloud Function
