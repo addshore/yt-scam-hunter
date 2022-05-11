@@ -2,9 +2,12 @@
   <v-app>
     <v-main>
         <v-app-bar>
+          <v-container>
           <v-toolbar-title>YouTube Scam Hunter</v-toolbar-title>
+          </v-container>
           <template v-slot:extension>
-            <v-tabs centered icons-and-text>
+            <v-container>
+            <v-tabs icons-and-text>
               <v-tab
                 v-for="tab of tabs"
                 :key="tab.name"
@@ -15,6 +18,7 @@
               {{tab.name}}
               </v-tab>
             </v-tabs>
+            </v-container>
           </template>
         </v-app-bar>
         <router-view></router-view>

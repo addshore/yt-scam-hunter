@@ -5,8 +5,8 @@
         <h2 class="headline font-weight-bold mb-5">Home</h2>
         <p>This website tracks the live crypto scams that happen on YouTube every day.</p>
         <p>Crypto scams have existed on YouTube for the last few years. </p>
-        <p>They havn't changed much, but YouTube has really failed to tackle them.</p>
-        <p>The general pattern involves a hijacked account, a renammed channel, a video with some well known figures, and a link to a "competition" or giveaway.</p>
+        <p>They haven't changed much, but YouTube has really failed to tackle them.</p>
+        <p>The general pattern involves a hijacked account, a renamed channel, a video with some well known figures, and a link to a "competition" or giveaway.</p>
         <br/>
         <p>Currently tracking <router-link to="/streams">{{liveStreamCount}} streams</router-link>, <router-link to="/websites">{{domainCount}} websites</router-link>, and <router-link to="/wallets">{{walletCount}} wallets</router-link> receiving a total of <a v-bind:href="googleConvertLink(btcTotalReceived,'BTC')" target="_blank">{{btcTotalReceived}} BTC</a> and currently holding a total of <a v-bind:href="googleConvertLink(ethTotalBalance,'ETH')" target="_blank">{{ethTotalBalance}} ETH</a></p>
         <br/>

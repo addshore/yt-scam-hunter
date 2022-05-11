@@ -7,7 +7,7 @@
         scammed.
       </p>
       <p>This list includes the sites we have found to be online.</p>
-      <p><small><v-icon icon="mdi-alert" color="red"/>Links will open the scam site</small></p>
+      <div class="warning"><p><small><v-icon icon="mdi-alert" color="red"/>Links will open the scam site</small></p></div>
       <v-divider></v-divider>
       <v-progress-circular
         v-if="domains === null"
@@ -37,3 +37,16 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+
+.warning {
+  padding-top: 5px;
+  padding-bottom: 10px;
+}
+
+.v-chip {
+  margin: 3px;
+}
+
+</style>

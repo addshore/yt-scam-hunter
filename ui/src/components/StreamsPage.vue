@@ -6,7 +6,7 @@
       <p>Many live streams are currently running on YouTube trying to scam people out of money.</p>
       <p>Currently tracking <strong>{{count}}</strong> live streams</p>
       <p>This page should update hourly</p>
-      <p><small><v-icon icon="mdi-alert" color="red"/>These videos are all scams, don't do what they say!</small></p>
+      <div class="warning"><p><small><v-icon icon="mdi-alert" color="red"/>These videos are all scams, don't do what they say!</small></p></div>
       <v-divider></v-divider>
       <v-progress-circular
         v-if="streams === null"
@@ -43,6 +43,11 @@
                 <template v-for="chip in detail.chips" v-bind:key="chip">
                   <v-chip v-if="!chip.link">{{chip.text}}</v-chip>
                   <a v-if="chip.link" v-bind:href="chip.link" target="_blank" rel="nofollow"><v-chip>{{chip.text}}</v-chip></a>
+                </template>
+              </span>
+              <span v-if="detail.list">
+                <template v-for="(listDetails, index) in detail.list" v-bind:key="index">
+                  <span v-if="index != 0">, </span><span><a v-if="listDetails.link" v-bind:href="listDetails.link" target="_blank" rel="nofollow">{{ listDetails.text }}</a></span>
                 </template>
               </span>
             </div>
@@ -118,39 +123,39 @@ export default {
               },
               doamins: {
                 name: "Websites",
-                chips: ((domains) => {
-                  let chips = []
+                list: ((domains) => {
+                  let bits = []
                   for (let domain in domains) {
-                    chips.push({
+                    bits.push({
                       text: domain,
                       link: "https://" + domain,
                     })
                   }
-                  return chips
+                  return bits
                 })(stream.domains)
               },
               wallets: {
                 name: "Wallets",
-                chips: ((wallets) => {
-                  let chips = []
+                list: ((wallets) => {
+                  let bits = []
                   for (let wallet in wallets.btc) {
-                    chips.push({
+                    bits.push({
                       text: wallet,
                       link: "https://blockchain.info/address/" + wallet,
                     })
                   }
                   for (let wallet in wallets.eth) {
-                    chips.push({
+                    bits.push({
                       text: wallet,
                       link: "https://etherscan.io/address/" + wallet,
                     })
                   }
-                  return chips
+                  return bits
                 })(stream.wallets)
             },
             artifacts: {
               name: "Artifacts",
-              chips: [
+              list: [
                 {
                   text: "Frame",
                   link: stream.files.snapshot,
@@ -182,3 +187,20 @@ export default {
     },
 };
 </script>
+
+<style scoped>
+
+.warning {
+  padding-top: 5px;
+  padding-bottom: 10px;
+}
+
+.v-card-title {
+  padding-top: 20px;
+}
+
+.v-card-text {
+  line-height: 175%;
+}
+
+</style>

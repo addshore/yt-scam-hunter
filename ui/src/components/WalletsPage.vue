@@ -7,7 +7,7 @@
         to various wallets.
       </p>
       <p>These are the wallets extracted from the sites.</p>
-      <p><small><v-icon icon="mdi-alert" color="red"/>These are all scammer wallets</small></p>
+      <div class="warning"><p><small><v-icon icon="mdi-alert" color="red"/>These are all scammer wallets</small></p></div>
       <v-divider></v-divider>
       <h2 class="font-weight-bold">BTC</h2>
       <p>Total received: <a v-bind:href="googleConvertLink(btcReceived,'BTC')" target="_blank">{{btcReceived}} BTC</a></p>
@@ -79,3 +79,17 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+
+.warning {
+  padding-top: 5px;
+  padding-bottom: 10px;
+}
+
+.v-chip {
+  margin: 3px;
+}
+
+
+</style>
