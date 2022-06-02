@@ -12,7 +12,7 @@
   "dependencies": {
     "@mdi/font": "^6.6.96",
     "axios": "^0.27.2",
-    "core-js": "^3.22.5",
+    "core-js": "^3.22.7",
     "material-design-icons-iconfont": "^6.7.0",
     "roboto-fontface": "*",
     "s-ago": "^2.2.0",
@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
-    "@babel/eslint-parser": "^7.12.16",
+    "@babel/eslint-parser": "^7.18.2",
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
