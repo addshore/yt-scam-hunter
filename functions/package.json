@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "env-cmd": "^10.1.0",
-    "eslint": "^8.16.0",
+    "eslint": "^8.18.0",
     "eslint-config-google": "^0.14.0",
     "fetch-mock": "^9.11.0",
     "firebase-functions-test": "^0.2.3",
