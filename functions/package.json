@@ -21,7 +21,7 @@
     "@google-cloud/vision": "^2.4.2",
     "@shelf/aws-lambda-tesseract": "^3.0.0",
     "ffmpeg-extract-frame": "^1.0.2",
-    "firebase-admin": "^10.0.2",
+    "firebase-admin": "^11.0.1",
     "firebase-functions": "^3.21.2",
     "jimp": "^0.16.1",
     "tesseract.js": "^2.1.5",
