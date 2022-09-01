@@ -3,59 +3,8 @@
     <div id="app">
       <!-- Create a table for btc data -->
       <h2 class="headline font-weight-bold mb-5">Streams</h2>
-      <p>Many live streams are currently running on YouTube trying to scam people out of money.</p>
-      <p>Currently tracking <strong>{{count}}</strong> live streams</p>
-      <p>This page should update hourly</p>
-      <div class="warning"><p><small><v-icon icon="mdi-alert" color="red"/>These videos are all scams, don't do what they say!</small></p></div>
-      <v-divider></v-divider>
-      <v-progress-circular
-        v-if="streams === null"
-        indeterminate
-        color="primary"
-      ></v-progress-circular>
-    <v-container fluid>
-      <v-row dense>
-        <v-col
-        v-for="card in cards"
-        :key="card.id"
-        :cols="6" >
-
-        <v-card>
-            <v-img
-                height="250px"
-                v-bind:src="card.image"
-                cover
-              >
-              </v-img>
-
-            <v-card-title>
-              <a v-bind:href="card.link" target="_blank">{{ card.title }}</a>
-            </v-card-title>
-
-            <v-card-text class="text--primary">
-
-            <div v-for="detail in card.details" v-bind:key="detail.name" >
-              <strong>{{detail.name}}: </strong>
-              <span v-if="detail.html && !detail.link" v-html="detail.html"></span>
-              <span v-if="detail.value && !detail.link">{{detail.value}}</span>
-              <a v-if="detail.value && detail.link" v-bind:href="detail.link" target="_blank" rel="nofollow">{{detail.value}}</a>
-              <span v-if="detail.chips">
-                <template v-for="chip in detail.chips" v-bind:key="chip">
-                  <v-chip v-if="!chip.link">{{chip.text}}</v-chip>
-                  <a v-if="chip.link" v-bind:href="chip.link" target="_blank" rel="nofollow"><v-chip>{{chip.text}}</v-chip></a>
-                </template>
-              </span>
-              <span v-if="detail.list">
-                <template v-for="(listDetails, index) in detail.list" v-bind:key="index">
-                  <span v-if="index != 0">, </span><span><a v-if="listDetails.link" v-bind:href="listDetails.link" target="_blank" rel="nofollow">{{ listDetails.text }}</a></span>
-                </template>
-              </span>
-            </div>
-            </v-card-text>
-        </v-card>
-        </v-col>
-        </v-row>
-      </v-container>
+      <p>Many live streams run on YouTube trying to scam people out of money.</p>
+      <p><strong>This page no longer updates</strong>, but I expect you cna find some scam streams <a href="">here</a></p>
     </div>
   </v-container>
 </template>

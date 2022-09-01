@@ -7,10 +7,9 @@
         to various wallets.
       </p>
       <p>These are the wallets extracted from the sites.</p>
-      <div class="warning"><p><small><v-icon icon="mdi-alert" color="red"/>These are all scammer wallets</small></p></div>
+      <div class="warning"><p><small><v-icon icon="mdi-alert" color="red"/>These are most likely all scammer wallets</small></p></div>
       <v-divider></v-divider>
       <h2 class="font-weight-bold">BTC</h2>
-      <p>Total received: <a v-bind:href="googleConvertLink(btcReceived,'BTC')" target="_blank">{{btcReceived}} BTC</a></p>
       <small>Links open wallet infomation on <a href="https://blockchain.info" target="_blanks">blockchain.info</a></small><br/>
       <v-progress-circular
         v-if="btc === null"
@@ -21,7 +20,6 @@
             <a :href="item.info" target="_blank"><v-chip>{{ address }}</v-chip></a>
         </template>
       <h2 class="font-weight-bold">ETH</h2>
-      <p>Total current balance: <a v-bind:href="googleConvertLink(ethBalance,'ETH')" target="_blank">{{ethBalance}} ETH</a></p>
       <small>Links open wallet infomation on <a href="https://etherscan.io" target="_blank">etherscan.io</a></small><br/>
       <v-progress-circular
         v-if="eth === null"
@@ -56,26 +54,6 @@ export default {
     }
   },
   computed: {
-    btcReceived() {
-      if (this.btc === null) {
-        return "Loading...";
-      }
-      let total = 0;
-      for (let address in this.btc) {
-        total += parseFloat(this.btc[address].received)
-      }
-      return total
-    },
-    ethBalance() {
-      if (this.eth === null) {
-        return "Loading...";
-      }
-      let total = 0;
-      for (let address in this.eth) {
-        total += parseFloat(this.eth[address].balance)
-      }
-      return total
-    }
   }
 };
 </script>
