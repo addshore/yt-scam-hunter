@@ -4,7 +4,7 @@
       <!-- Create a table for btc data -->
       <h2 class="headline font-weight-bold mb-5">Streams</h2>
       <p>Many live streams run on YouTube trying to scam people out of money.</p>
-      <p><strong>This page no longer updates</strong>, but I expect you cna find some scam streams <a href="">here</a></p>
+      <p><strong>This page no longer updates</strong>, but I expect you can find some scam streams <a href="https://www.youtube.com/results?search_query=ETH+BTC&sp=EgJAAQ%253D%253D">here</a></p>
     </div>
   </v-container>
 </template>
