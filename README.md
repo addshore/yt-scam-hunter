@@ -1,4 +1,8 @@
-# yt-scam-hunter
+# youTube scam hunter
+
+This project is now sunset, you can read the wrap up post [here](https://addshore.com/2022/09/hunting-youtube-crypto-scams/).
+
+----
 
 A little project to hunt for crypto scams on YouTube inspired from some [shouting into the void at YouTube](https://twitter.com/addshore/status/1520154767036751873).
 
