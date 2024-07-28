@@ -2,6 +2,12 @@
 
 This project is now sunset, you can read the wrap up post [here](https://addshore.com/2022/09/hunting-youtube-crypto-scams/).
 
+You can find the final versions of the hosted pages on archive.org:
+ - Home: https://web.archive.org/web/20230315064158/https://scam-hunter.web.app/#/
+ - Streams: https://web.archive.org/web/20230315064158/https://scam-hunter.web.app/#/streams
+ - Websites: https://web.archive.org/web/20230315064158/https://scam-hunter.web.app/#/websites
+ - Wallets: https://web.archive.org/web/20230315064158/https://scam-hunter.web.app/#/wallets
+
 ----
 
 A little project to hunt for crypto scams on YouTube inspired from some [shouting into the void at YouTube](https://twitter.com/addshore/status/1520154767036751873).
